@@ -29,7 +29,7 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
             <div className="flex items-center gap-2">
               <BotIcon className="h-8 w-8 text-accent" />
               <h1 className="text-xl font-headline font-semibold group-data-[collapsible=icon]:hidden">
-                MarketVision
+                MarketVision <span className="text-primary">Pro</span>
               </h1>
             </div>
             <SidebarTrigger className="group-data-[collapsible=icon]:hidden" />
@@ -51,17 +51,10 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
         {/* Optional: Mobile Header with Hamburger for a drawer if preferred later */}
         {isMobile && (
           <header className="sticky top-0 z-40 flex h-14 items-center gap-4 border-b bg-background px-4 sm:static sm:h-auto sm:border-0 sm:bg-transparent sm:px-6 md:hidden">
-             {/* For mobile, SidebarTrigger could be used here if we implement a drawer menu */}
-             {/* <SidebarTrigger asChild className="md:hidden">
-              <Button size="icon" variant="outline">
-                <PanelLeft className="h-5 w-5" />
-                <span className="sr-only">Toggle Menu</span>
-              </Button>
-            </SidebarTrigger> */}
             <div className="flex items-center gap-2">
               <BotIcon className="h-7 w-7 text-accent" />
               <h1 className="text-lg font-headline font-semibold">
-                MarketVision
+                MarketVision <span className="text-primary">Pro</span>
               </h1>
             </div>
           </header>

@@ -14,8 +14,8 @@
     --popover: 220 20% 5%; /* Even darker for popovers */
     --popover-foreground: 210 40% 98%;
 
-    --primary: 270 80% 65%; /* Vibrant Indigo/Purple */
-    --primary-foreground: 210 40% 98%; /* High contrast foreground for primary */
+    --primary: 260 75% 60%; /* Deep Indigo/Purple - Refined for Pro */
+    --primary-foreground: 210 40% 98%; 
 
     --secondary: 220 15% 25%; /* Muted Dark Blue/Gray for secondary elements */
     --secondary-foreground: 210 40% 90%;
@@ -23,7 +23,7 @@
     --muted: 220 15% 18%; /* Darker muted background */
     --muted-foreground: 220 10% 60%; /* Subtle muted text */
 
-    --accent: 285 85% 60%; /* Electric Purple */
+    --accent: 300 90% 65%; /* Vibrant Magenta/Pinkish-Purple - Refined for Pro */
     --accent-foreground: 0 0% 100%; /* White on accent */
 
     --destructive: 0 70% 55%; /* Slightly desaturated red */
@@ -31,64 +31,64 @@
 
     --border: 220 15% 20%; /* Subtle border, darker */
     --input: 220 15% 15%; /* Dark input fields */
-    --ring: 280 80% 70%; /* Ring color, related to accent/primary */
+    --ring: 300 80% 70%; /* Ring color, related to new accent */
 
     --radius: 0.75rem; /* Larger radius for modern feel */
 
     /* Chart colors - can be adjusted for better visibility on dark theme */
-    --chart-1: 285 80% 70%; /* Lighter Purple */
-    --chart-2: 275 70% 60%; /* Lighter Indigo */
+    --chart-1: 300 80% 70%; /* Lighter version of new accent */
+    --chart-2: 260 70% 65%; /* Lighter version of new primary */
     --chart-3: 210 80% 65%; /* A contrasting blue */
     --chart-4: 30 80% 60%;  /* A contrasting orange */
     --chart-5: 120 50% 55%; /* A contrasting green */
     
-    /* Sidebar Colors for Dark Theme */
-    --sidebar-background: 220 20% 5%; /* Even darker than main bg */
-    --sidebar-foreground: 210 30% 85%; /* Softer foreground for sidebar */
-    --sidebar-primary: 285 85% 60%; /* Main accent for active items */
+    /* Sidebar Colors for Pro Dark Theme */
+    --sidebar-background: 220 20% 4%; /* Even deeper dark for sidebar */
+    --sidebar-foreground: 210 30% 88%; /* Slightly brighter foreground for clarity */
+    --sidebar-primary: 300 90% 65%; /* Use new accent for active sidebar items */
     --sidebar-primary-foreground: 0 0% 100%;
-    --sidebar-accent: 220 20% 12%; /* Hover state for sidebar items */
-    --sidebar-accent-foreground: 210 40% 95%;
-    --sidebar-border: 220 15% 15%; /* Subtle sidebar border */
-    --sidebar-ring: 285 85% 70%; /* Ring for sidebar focus */
+    --sidebar-accent: 220 20% 9%; /* Darker, more subtle hover for sidebar items */
+    --sidebar-accent-foreground: 210 40% 96%;
+    --sidebar-border: 220 15% 10%; /* More subtle sidebar border */
+    --sidebar-ring: 300 90% 70%; 
   }
 
   .dark {
-    /* Apply new dark theme variables */
+    /* Apply new Pro dark theme variables */
     --background: 220 20% 7%;
     --foreground: 210 40% 98%;
     --card: 220 20% 10%;
     --card-foreground: 210 40% 98%;
     --popover: 220 20% 5%;
     --popover-foreground: 210 40% 98%;
-    --primary: 270 80% 65%;
+    --primary: 260 75% 60%;
     --primary-foreground: 210 40% 98%;
     --secondary: 220 15% 25%;
     --secondary-foreground: 210 40% 90%;
     --muted: 220 15% 18%;
     --muted-foreground: 220 10% 60%;
-    --accent: 285 85% 60%;
+    --accent: 300 90% 65%;
     --accent-foreground: 0 0% 100%;
     --destructive: 0 70% 55%;
     --destructive-foreground: 0 0% 98%;
     --border: 220 15% 20%;
     --input: 220 15% 15%;
-    --ring: 280 80% 70%;
+    --ring: 300 80% 70%;
 
-    --chart-1: 285 80% 70%;
-    --chart-2: 275 70% 60%;
+    --chart-1: 300 80% 70%;
+    --chart-2: 260 70% 65%;
     --chart-3: 210 80% 65%;
     --chart-4: 30 80% 60%;
     --chart-5: 120 50% 55%;
     
-    --sidebar-background: 220 20% 5%;
-    --sidebar-foreground: 210 30% 85%;
-    --sidebar-primary: 285 85% 60%;
+    --sidebar-background: 220 20% 4%;
+    --sidebar-foreground: 210 30% 88%;
+    --sidebar-primary: 300 90% 65%;
     --sidebar-primary-foreground: 0 0% 100%;
-    --sidebar-accent: 220 20% 12%;
-    --sidebar-accent-foreground: 210 40% 95%;
-    --sidebar-border: 220 15% 15%;
-    --sidebar-ring: 285 85% 70%;
+    --sidebar-accent: 220 20% 9%;
+    --sidebar-accent-foreground: 210 40% 96%;
+    --sidebar-border: 220 15% 10%;
+    --sidebar-ring: 300 90% 70%;
   }
 }
 

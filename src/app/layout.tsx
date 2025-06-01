@@ -5,8 +5,8 @@ import { AppLayout } from '@/components/layout/app-layout';
 import { Toaster } from "@/components/ui/toaster";
 
 export const metadata: Metadata = {
-  title: 'MarketVision',
-  description: 'Advanced trading prediction Bot by MarketVision',
+  title: 'MarketVision Pro',
+  description: 'Advanced trading tools and insights by MarketVision Pro',
 };
 
 export default function RootLayout({
