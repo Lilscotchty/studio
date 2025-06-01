@@ -5,7 +5,7 @@ import Image from "next/image";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
 import { Badge } from "@/components/ui/badge";
-import { TrendingUp, TrendingDown, Minus, CandlestickChart, BarChart2, Lightbulb } from "lucide-react";
+import { TrendingUp, TrendingDown, Minus, CandlestickChart, BarChart2, Lightbulb, Zap, Workflow } from "lucide-react";
 import type { PredictionOutput, AnalysisOutput } from "@/types";
 
 interface PredictionResultsProps {
@@ -67,7 +67,7 @@ export function PredictionResults({ prediction, analysis, imagePreviewUrl }: Pre
                 prediction.marketDirection === 'DOWN' ? 'destructive' : 'secondary'
               } className={
                 prediction.marketDirection === 'UP' ? 'bg-green-600 hover:bg-green-700' :
-                prediction.marketDirection === 'DOWN' ? 'bg-red-600 hover:bg-red-700' :
+                prediction.marketDirection === 'DOWN' ? 'bg-red-600 hover:bg-red-600' :
                 'bg-yellow-500 hover:bg-yellow-600'
               }>
                 {prediction.marketDirection}
@@ -98,7 +98,7 @@ export function PredictionResults({ prediction, analysis, imagePreviewUrl }: Pre
           <CardTitle className="font-headline text-xl flex items-center gap-2">
             <Lightbulb className="text-accent"/> Chart Analysis
           </CardTitle>
-          <CardDescription>Key findings from the candlestick chart image.</CardDescription>
+          <CardDescription>Key findings from the candlestick chart image, including ICT insights.</CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
           <div>
@@ -107,7 +107,7 @@ export function PredictionResults({ prediction, analysis, imagePreviewUrl }: Pre
           </div>
           <div>
             <Label className="text-sm font-medium">Detected Patterns</Label>
-            {analysis.patterns.length > 0 ? (
+            {analysis.patterns && analysis.patterns.length > 0 ? (
               <div className="flex flex-wrap gap-2 mt-1">
                 {analysis.patterns.map((pattern, index) => (
                   <Badge key={index} variant="secondary">{pattern}</Badge>
@@ -117,6 +117,27 @@ export function PredictionResults({ prediction, analysis, imagePreviewUrl }: Pre
               <p className="text-sm text-muted-foreground mt-1">No specific patterns identified.</p>
             )}
           </div>
+           {analysis.ictElements && analysis.ictElements.length > 0 && (
+            <div>
+              <Label className="text-sm font-medium flex items-center gap-1"><Zap className="h-4 w-4 text-accent" /> ICT Elements Identified</Label>
+              <ul className="mt-2 list-none space-y-2">
+                {analysis.ictElements.map((element, index) => (
+                  <li key={index} className="p-2 border rounded-md bg-muted/30">
+                    <strong className="text-accent">{element.type}:</strong>
+                    <p className="text-xs text-muted-foreground mt-0.5">{element.location_description}</p>
+                  </li>
+                ))}
+              </ul>
+            </div>
+          )}
+          {analysis.marketStructureAnalysis && (
+            <div>
+              <Label className="text-sm font-medium flex items-center gap-1"><Workflow className="h-4 w-4 text-accent" /> Market Structure Analysis</Label>
+              <p className="text-sm text-muted-foreground mt-1 whitespace-pre-wrap p-2 border rounded-md bg-muted/30">
+                {analysis.marketStructureAnalysis}
+              </p>
+            </div>
+          )}
           <div>
             <Label className="text-sm font-medium">Analysis Summary</Label>
             <p className="text-sm text-muted-foreground mt-1 whitespace-pre-wrap">{analysis.summary}</p>
@@ -128,7 +149,8 @@ export function PredictionResults({ prediction, analysis, imagePreviewUrl }: Pre
 }
 
 // Helper Label component if not globally available or for specific styling
-const Label = ({ className, ...props }: React.LabelHTMLAttributes<HTMLLabelElement>) => (
-  <label className={`block text-sm font-medium text-muted-foreground ${className}`} {...props} />
+const Label = ({ className, children, ...props }: React.LabelHTMLAttributes<HTMLLabelElement> & { children: React.ReactNode }) => (
+  <div className={`block text-sm font-medium text-muted-foreground ${className}`} {...props}>
+    {children}
+  </div>
 );
-

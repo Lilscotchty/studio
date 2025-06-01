@@ -1,9 +1,8 @@
-// This file is machine-generated - edit with care!
 
 'use server';
 
 /**
- * @fileOverview Analyzes candlestick chart images to identify patterns and trends.
+ * @fileOverview Analyzes candlestick chart images to identify patterns, trends, and basic ICT elements.
  *
  * - analyzeCandlestickChart - A function that handles the candlestick chart analysis process.
  * - AnalyzeCandlestickChartInput - The input type for the analyzeCandlestickChart function.
@@ -22,10 +21,24 @@ const AnalyzeCandlestickChartInputSchema = z.object({
 });
 export type AnalyzeCandlestickChartInput = z.infer<typeof AnalyzeCandlestickChartInputSchema>;
 
+const ICTElementSchema = z.object({
+  type: z.enum([
+    "Order Block (Bullish)", 
+    "Order Block (Bearish)", 
+    "Fair Value Gap (Bullish)", 
+    "Fair Value Gap (Bearish)", 
+    "Liquidity Pool (Buy-side)", 
+    "Liquidity Pool (Sell-side)"
+  ]).describe("The type of ICT element identified."),
+  location_description: z.string().describe("A textual description of where this element is visually located on the chart, e.g., 'around the recent swing low', 'the large green candle near the top'.")
+});
+
 const AnalyzeCandlestickChartOutputSchema = z.object({
   trend: z.string().describe('The identified trend in the candlestick chart.'),
   patterns: z.array(z.string()).describe('The candlestick patterns identified in the chart.'),
   summary: z.string().describe('A summary of the analysis of the candlestick chart.'),
+  ictElements: z.array(ICTElementSchema).optional().describe("Key ICT elements identified visually on the chart, such as Order Blocks or Fair Value Gaps."),
+  marketStructureAnalysis: z.string().optional().describe("Observations on market structure like Break of Structure (BOS) or Change of Character (CHoCH), if visually discernible.")
 });
 export type AnalyzeCandlestickChartOutput = z.infer<typeof AnalyzeCandlestickChartOutputSchema>;
 
@@ -37,15 +50,26 @@ const prompt = ai.definePrompt({
   name: 'analyzeCandlestickChartPrompt',
   input: {schema: AnalyzeCandlestickChartInputSchema},
   output: {schema: AnalyzeCandlestickChartOutputSchema},
-  prompt: `You are an expert financial analyst specializing in candlestick chart pattern recognition.
+  prompt: `You are an expert financial analyst specializing in candlestick chart pattern recognition and Inner Circle Trader (ICT) concepts.
 
-You will analyze the candlestick chart and identify trends, specific candlestick patterns, and provide a summary of your analysis.
+You will analyze the provided candlestick chart image. Your goal is to identify and describe the following:
+1.  Overall Trend: Determine the prevailing market trend (e.g., Uptrend, Downtrend, Sideways).
+2.  Candlestick Patterns: Identify any significant candlestick patterns visible (e.g., Hammer, Engulfing, Doji). List them.
+3.  ICT Elements: Visually identify and describe key ICT elements. For each element found, specify its type and provide a brief description of its location on the chart. Types to consider:
+    - Order Block (Bullish)
+    - Order Block (Bearish)
+    - Fair Value Gap (Bullish)
+    - Fair Value Gap (Bearish)
+    - Liquidity Pool (Buy-side) - e.g., above clear swing highs or equal highs
+    - Liquidity Pool (Sell-side) - e.g., below clear swing lows or equal lows
+4.  Market Structure: Briefly comment on any visible market structure features like a Break of Structure (BOS) or a Change of Character (CHoCH). For example, "Potential BOS to the upside if the recent high is broken," or "CHoCH observed as the previous swing low was violated."
+5.  Summary: Provide a concise overall summary of your analysis based on the above points.
 
 Analyze the following candlestick chart:
 
 {{media url=chartDataUri}}
 
-Output the trend, patterns, and summary in JSON format.`,
+Output MUST be in JSON format according to the defined output schema. For ictElements, provide a list of objects, each with 'type' and 'location_description'. If no specific ICT elements or market structure features are clearly visible, you may omit those fields or return empty arrays/strings respectively.`,
 });
 
 const analyzeCandlestickChartFlow = ai.defineFlow(

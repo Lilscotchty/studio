@@ -1,10 +1,12 @@
-import type { AnalyzeCandlestickChartOutput, PredictMarketMovementOutput } from '@/ai/flows/predict-market-movement';
+
+import type { AnalyzeCandlestickChartOutput } from '@/ai/flows/analyze-candlestick-chart';
+import type { PredictMarketMovementOutput } from '@/ai/flows/predict-market-movement';
 
 export interface UploadedImageAnalysis {
   id: string;
   imageName: string;
   imageUrl: string; // data URI or URL if stored
-  analysisResult?: AnalyzeCandlestickChartOutput['analysis']; // Assuming analysis is part of the output
+  analysisResult?: AnalyzeCandlestickChartOutput;
   predictionResult?: PredictMarketMovementOutput['prediction'];
   timestamp: Date;
   flaggedStatus?: 'successful' | 'unsuccessful' | null;
@@ -30,6 +32,6 @@ export interface HistoricalPrediction {
   date: string;
   asset?: string; // Optional: if user can specify
   prediction: PredictionOutput;
-  analysis?: AnalysisOutput; // Optional: if we also store this
+  analysis?: AnalysisOutput; // This will now include ICT elements
   manualFlag?: 'successful' | 'unsuccessful';
 }
