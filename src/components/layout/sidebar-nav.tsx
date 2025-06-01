@@ -8,13 +8,13 @@ import {
   SidebarMenuItem,
   SidebarMenuButton,
 } from "@/components/ui/sidebar";
-import { LayoutDashboard, BellRing, History, Activity } from "lucide-react"; // Changed UploadCloud to Activity for live analysis
+import { BarChart3, BellRing, History, Activity } from "lucide-react"; // Changed LayoutDashboard to BarChart3
 
 const navItems = [
-  { href: "/", label: "Dashboard", icon: LayoutDashboard },
+  { href: "/", label: "Market Overview", icon: BarChart3 }, // Changed label and icon
   { href: "/alerts", label: "Alerts", icon: BellRing },
   { href: "/performance", label: "Performance", icon: History },
-  { href: "/live-analysis", label: "Live Analysis", icon: Activity }, // New navigation item
+  { href: "/live-analysis", label: "Live Analysis", icon: Activity },
 ];
 
 export function SidebarNav() {
