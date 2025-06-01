@@ -108,6 +108,13 @@ export default function DashboardPage() {
       </header>
       
       <main className="space-y-10 md:space-y-16">
+        <section className="pb-8">
+           <h2 className="text-xl md:text-2xl font-semibold mb-6 text-center flex items-center justify-center">
+            <CandlestickChart className="mr-3 h-7 w-7 text-accent"/> Chart Analysis Tool
+          </h2>
+          <ImageUploadForm />
+        </section>
+
         <section>
           <h2 className="text-xl md:text-2xl font-semibold mb-4 flex items-center"><Activity className="mr-2 h-6 w-6 text-primary"/>US Markets</h2>
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-6">
@@ -127,13 +134,6 @@ export default function DashboardPage() {
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-6">
             {asianMarketData.map((data) => <MarketIndexCard key={data.id} {...data} />)}
           </div>
-        </section>
-
-        <section className="pt-8">
-           <h2 className="text-xl md:text-2xl font-semibold mb-6 text-center flex items-center justify-center">
-            <CandlestickChart className="mr-3 h-7 w-7 text-accent"/> Chart Analysis Tool
-          </h2>
-          <ImageUploadForm />
         </section>
       </main>
     </div>
