@@ -8,7 +8,7 @@ export interface UploadedImageAnalysis {
   id: string;
   imageName: string;
   imageUrl: string; 
-  analysisResult?: AnalysisOutput;
+  analysisResult?: AnalysisOutput; // Corrected type usage
   predictionResult?: PredictionOutput;
   timestamp: Date;
   flaggedStatus?: 'successful' | 'unsuccessful' | null;
@@ -25,7 +25,7 @@ export interface AlertConfig {
 }
 
 export type PredictionOutput = PredictMarketMovementOutput['prediction'];
-export type AnalysisOutput = AnalyzeCandlestickChartOutput; // This now includes ICT elements
+export type AnalysisOutput = AnalyzeCandlestickChartOutput; // This now includes ICT elements and potential AMD cycle observations
 
 export interface HistoricalPrediction {
   id: string;
@@ -53,3 +53,4 @@ export interface AlphaVantageGlobalQuote {
   change: number;
   changePercent: string;
 }
+

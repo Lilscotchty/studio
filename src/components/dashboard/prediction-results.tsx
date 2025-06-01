@@ -5,7 +5,7 @@ import Image from "next/image";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
 import { Badge } from "@/components/ui/badge";
-import { TrendingUp, TrendingDown, Minus, CandlestickChart, BarChart2, Lightbulb, Zap, Workflow } from "lucide-react";
+import { TrendingUp, TrendingDown, Minus, CandlestickChart, BarChart2, Lightbulb, Zap, Workflow, Layers3, Info } from "lucide-react";
 import type { PredictionOutput, AnalysisOutput } from "@/types";
 
 interface PredictionResultsProps {
@@ -138,6 +138,28 @@ export function PredictionResults({ prediction, analysis, imagePreviewUrl }: Pre
               </p>
             </div>
           )}
+          {analysis.potentialAMDCycle && (analysis.potentialAMDCycle.phase || analysis.potentialAMDCycle.reasoning) && (
+            <div>
+              <Label className="text-sm font-medium flex items-center gap-1">
+                <Layers3 className="h-4 w-4 text-accent" /> Potential AMD Cycle Observation
+              </Label>
+              <div className="mt-1 p-3 border rounded-md bg-muted/30 space-y-1">
+                {analysis.potentialAMDCycle.phase && (
+                    <p className="text-sm">
+                        <strong className="text-foreground">Phase:</strong> {analysis.potentialAMDCycle.phase}
+                    </p>
+                )}
+                {analysis.potentialAMDCycle.reasoning && (
+                    <p className="text-xs text-muted-foreground">
+                        <Info className="inline h-3 w-3 mr-1" /> {analysis.potentialAMDCycle.reasoning}
+                    </p>
+                )}
+                {(analysis.potentialAMDCycle.phase === "Unclear" && !analysis.potentialAMDCycle.reasoning) && (
+                    <p className="text-xs text-muted-foreground">No clear AMD cycle phase apparent from the visual information.</p>
+                )}
+              </div>
+            </div>
+          )}
           <div>
             <Label className="text-sm font-medium">Analysis Summary</Label>
             <p className="text-sm text-muted-foreground mt-1 whitespace-pre-wrap">{analysis.summary}</p>
@@ -154,3 +176,4 @@ const Label = ({ className, children, ...props }: React.LabelHTMLAttributes<HTML
     {children}
   </div>
 );
+
