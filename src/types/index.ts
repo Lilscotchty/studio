@@ -7,8 +7,8 @@ import type { AnalyzeMarketDataInput as AMDI, AnalyzeMarketDataOutput as AMDO } 
 export interface UploadedImageAnalysis {
   id: string;
   imageName: string;
-  imageUrl: string; // data URI or URL if stored
-  analysisResult?: AnalysisOutput; // Corrected: This was referencing AnalyzeCandlestickChartOutput directly
+  imageUrl: string; 
+  analysisResult?: AnalysisOutput;
   predictionResult?: PredictionOutput;
   timestamp: Date;
   flaggedStatus?: 'successful' | 'unsuccessful' | null;
@@ -17,27 +17,39 @@ export interface UploadedImageAnalysis {
 export interface AlertConfig {
   id: string;
   name: string;
-  asset: string; // e.g. BTC/USD
+  asset: string; 
   conditionType: 'price_target' | 'confidence_change' | 'pattern_detected';
-  value: string | number; // e.g. target price, confidence threshold, pattern name
-  notificationMethod: 'email' | 'sms' | 'in-app'; // For UI display, actual notification not implemented
+  value: string | number; 
+  notificationMethod: 'email' | 'sms' | 'in-app'; 
   isActive: boolean;
 }
 
-// Refined types based on actual AI flow outputs
 export type PredictionOutput = PredictMarketMovementOutput['prediction'];
-export type AnalysisOutput = AnalyzeCandlestickChartOutput;
+export type AnalysisOutput = AnalyzeCandlestickChartOutput; // This now includes ICT elements
 
 export interface HistoricalPrediction {
   id: string;
-  imagePreviewUrl: string; // A small preview or placeholder
+  imagePreviewUrl: string; 
   date: string;
-  asset?: string; // Optional: if user can specify
+  asset?: string; 
   prediction: PredictionOutput;
-  analysis?: AnalysisOutput; // This will now include ICT elements
+  analysis?: AnalysisOutput; 
   manualFlag?: 'successful' | 'unsuccessful';
 }
 
-// Types for the new analyzeMarketDataFlow
 export type AnalyzeMarketDataInput = AMDI;
 export type AnalyzeMarketDataOutput = AMDO;
+
+// For Alpha Vantage Global Quote
+export interface AlphaVantageGlobalQuote {
+  symbol: string;
+  open: number;
+  high: number;
+  low: number;
+  price: number;
+  volume: number;
+  latestTradingDay: string;
+  previousClose: number;
+  change: number;
+  changePercent: string;
+}

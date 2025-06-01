@@ -1,8 +1,8 @@
 
 "use client";
 
-import React, { useState, useEffect, useCallback } from "react";
-import { useForm } from "react-hook-form";
+import React, { useState, useEffect } from "react";
+import { useForm, Controller } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { Button } from "@/components/ui/button";
@@ -11,76 +11,85 @@ import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription, CardFooter } from "@/components/ui/card";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
-import { AlertCircle, CheckCircle, Loader2, Activity, Brain } from "lucide-react";
+import { AlertCircle, CheckCircle, Loader2, Activity, Brain, Search } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { analyzeMarketData, type AnalyzeMarketDataInput, type AnalyzeMarketDataOutput } from "@/ai/flows/analyze-market-data-flow";
+import { fetchMarketDataFromAV, type FetchMarketDataResult } from "@/lib/actions";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 
 const marketDataSchema = z.object({
-  assetSymbol: z.string().min(3, "Asset symbol is required (e.g., MOCK/USD)").default("MOCK/USD"),
-  currentPrice: z.number().positive("Current price must be positive"),
-  recentHigh: z.number().positive("Recent high must be positive"),
-  recentLow: z.number().positive("Recent low must be positive"),
+  assetSymbol: z.string().min(1, "Asset symbol is required (e.g., IBM, AAPL)").max(10, "Symbol too long.").default("IBM"),
+  currentPrice: z.number({invalid_type_error: "Current price must be a number."}).positive("Current price must be positive"),
+  recentHigh: z.number({invalid_type_error: "Recent high must be a number."}).positive("Recent high must be positive"),
+  recentLow: z.number({invalid_type_error: "Recent low must be a number."}).positive("Recent low must be positive"),
   marketTrendDescription: z.string().min(10, "Trend description is too short.").max(300, "Trend description is too long."),
   keyLevelsDescription: z.string().max(300, "Key levels description is too long.").optional(),
 });
 
 export function LiveMarketDataDisplay() {
   const { toast } = useToast();
-  const [simulatedPrice, setSimulatedPrice] = useState(100.00);
   const [analysisResult, setAnalysisResult] = useState<AnalyzeMarketDataOutput | null>(null);
-  const [isLoading, setIsLoading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
+  const [isAnalyzing, setIsAnalyzing] = useState(false);
+  const [isFetchingData, setIsFetchingData] = useState(false);
+  const [fetchDataError, setFetchDataError] = useState<string | null>(null);
+  const [analysisError, setAnalysisError] = useState<string | null>(null);
+  const [symbolToFetch, setSymbolToFetch] = useState("IBM");
 
   const form = useForm<z.infer<typeof marketDataSchema>>({
     resolver: zodResolver(marketDataSchema),
     defaultValues: {
-      assetSymbol: "MOCK/USD",
-      currentPrice: simulatedPrice,
-      recentHigh: 105.00,
-      recentLow: 95.00,
+      assetSymbol: "IBM",
+      currentPrice: 0,
+      recentHigh: 0,
+      recentLow: 0,
       marketTrendDescription: "Currently in a short-term uptrend, approaching recent highs after a small pullback.",
-      keyLevelsDescription: "Potential resistance at 105. Bullish order block visible around 96-97. Small FVG around 98.50-98.80.",
+      keyLevelsDescription: "Potential resistance at recent highs. Bullish order block visible around prior lows.",
     },
   });
 
-  useEffect(() => {
-    form.setValue("currentPrice", parseFloat(simulatedPrice.toFixed(2)));
-  }, [simulatedPrice, form]);
+  const handleFetchData = async () => {
+    if (!symbolToFetch.trim()) {
+      setFetchDataError("Please enter a stock symbol.");
+      return;
+    }
+    setIsFetchingData(true);
+    setFetchDataError(null);
+    const result: FetchMarketDataResult = await fetchMarketDataFromAV(symbolToFetch.toUpperCase());
+    setIsFetchingData(false);
 
-  const simulatePriceUpdate = useCallback(() => {
-    setSimulatedPrice(prevPrice => {
-      const change = (Math.random() - 0.5) * 2; // Random change between -1 and 1
-      return Math.max(1, prevPrice + change); // Ensure price doesn't go below 1
-    });
-  }, []);
+    if (result.error) {
+      setFetchDataError(result.error);
+      toast({ title: "Data Fetch Failed", description: result.error, variant: "destructive" });
+    } else if (result.data) {
+      form.setValue("assetSymbol", result.data.symbol);
+      form.setValue("currentPrice", result.data.price);
+      form.setValue("recentHigh", result.data.high); // Using daily high as recentHigh
+      form.setValue("recentLow", result.data.low);   // Using daily low as recentLow
+      toast({ title: "Data Fetched", description: `Market data for ${result.data.symbol} updated.` });
+    }
+  };
 
-  useEffect(() => {
-    const intervalId = setInterval(simulatePriceUpdate, 3000); // Update every 3 seconds
-    return () => clearInterval(intervalId);
-  }, [simulatePriceUpdate]);
-
-  const onSubmit = async (values: z.infer<typeof marketDataSchema>) => {
-    setIsLoading(true);
-    setError(null);
+  const onSubmitAnalysis = async (values: z.infer<typeof marketDataSchema>) => {
+    setIsAnalyzing(true);
+    setAnalysisError(null);
     setAnalysisResult(null);
     try {
       const result = await analyzeMarketData(values);
       setAnalysisResult(result);
       toast({
         title: "Analysis Complete",
-        description: "Conceptual ICT analysis has been generated.",
+        description: "Conceptual market analysis has been generated.",
       });
     } catch (err) {
       const errorMessage = err instanceof Error ? err.message : "An unknown error occurred.";
-      setError(errorMessage);
+      setAnalysisError(errorMessage);
       toast({
         title: "Analysis Failed",
         description: errorMessage,
         variant: "destructive",
       });
     } finally {
-      setIsLoading(false);
+      setIsAnalyzing(false);
     }
   };
 
@@ -88,18 +97,43 @@ export function LiveMarketDataDisplay() {
     <div className="space-y-8">
       <Card className="shadow-lg">
         <CardHeader>
-          <CardTitle className="font-headline text-xl flex items-center gap-2"><Activity className="text-accent" />Simulated Market Data</CardTitle>
-          <CardDescription>Current simulated price for {form.getValues("assetSymbol")}: <span className="font-bold text-lg text-accent">${simulatedPrice.toFixed(2)}</span></CardDescription>
+          <CardTitle className="font-headline text-xl flex items-center gap-2"><Activity className="text-accent" />Market Data Input</CardTitle>
+          <CardDescription>Fetch market data for a symbol or enter manually, then analyze.</CardDescription>
         </CardHeader>
+        <CardContent className="space-y-4">
+          <div className="flex items-end gap-2">
+            <div className="flex-grow">
+              <Label htmlFor="symbolInput">Stock Symbol (e.g., IBM, AAPL)</Label>
+              <Input 
+                id="symbolInput"
+                value={symbolToFetch}
+                onChange={(e) => setSymbolToFetch(e.target.value.toUpperCase())}
+                placeholder="Enter symbol"
+                className="mt-1"
+              />
+            </div>
+            <Button onClick={handleFetchData} disabled={isFetchingData || !symbolToFetch.trim()}>
+              {isFetchingData ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Search className="mr-2 h-4 w-4" />}
+              Fetch Data
+            </Button>
+          </div>
+          {fetchDataError && (
+            <Alert variant="destructive">
+              <AlertCircle className="h-4 w-4" />
+              <AlertTitle>Data Fetch Error</AlertTitle>
+              <AlertDescription>{fetchDataError}</AlertDescription>
+            </Alert>
+          )}
+        </CardContent>
         <Form {...form}>
-          <form onSubmit={form.handleSubmit(onSubmit)}>
-            <CardContent className="space-y-6">
+          <form onSubmit={form.handleSubmit(onSubmitAnalysis)}>
+            <CardContent className="space-y-6 pt-0">
               <FormField
                 control={form.control}
                 name="assetSymbol"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Asset Symbol</FormLabel>
+                    <FormLabel>Asset Symbol (Fetched/Manual)</FormLabel>
                     <FormControl>
                       <Input {...field} />
                     </FormControl>
@@ -112,9 +146,9 @@ export function LiveMarketDataDisplay() {
                 name="currentPrice"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Current Price (auto-updates)</FormLabel>
+                    <FormLabel>Current Price</FormLabel>
                     <FormControl>
-                      <Input type="number" {...field} readOnly className="bg-muted/50" />
+                      <Input type="number" step="any" {...field} onChange={e => field.onChange(parseFloat(e.target.value))} />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
@@ -128,7 +162,7 @@ export function LiveMarketDataDisplay() {
                     <FormItem>
                       <FormLabel>Recent Significant High</FormLabel>
                       <FormControl>
-                        <Input type="number" step="0.01" {...field} onChange={e => field.onChange(parseFloat(e.target.value))} />
+                        <Input type="number" step="any" {...field} onChange={e => field.onChange(parseFloat(e.target.value))} />
                       </FormControl>
                       <FormMessage />
                     </FormItem>
@@ -141,7 +175,7 @@ export function LiveMarketDataDisplay() {
                     <FormItem>
                       <FormLabel>Recent Significant Low</FormLabel>
                       <FormControl>
-                        <Input type="number" step="0.01" {...field} onChange={e => field.onChange(parseFloat(e.target.value))} />
+                        <Input type="number" step="any" {...field} onChange={e => field.onChange(parseFloat(e.target.value))} />
                       </FormControl>
                       <FormMessage />
                     </FormItem>
@@ -176,8 +210,8 @@ export function LiveMarketDataDisplay() {
               />
             </CardContent>
             <CardFooter>
-              <Button type="submit" disabled={isLoading} className="w-full bg-primary hover:bg-primary/90">
-                {isLoading ? (
+              <Button type="submit" disabled={isAnalyzing} className="w-full bg-primary hover:bg-primary/90">
+                {isAnalyzing ? (
                   <>
                     <Loader2 className="mr-2 h-4 w-4 animate-spin" />
                     Analyzing Data...
@@ -194,19 +228,19 @@ export function LiveMarketDataDisplay() {
         </Form>
       </Card>
 
-      {error && (
+      {analysisError && (
         <Alert variant="destructive">
           <AlertCircle className="h-4 w-4" />
           <AlertTitle>Analysis Error</AlertTitle>
-          <AlertDescription>{error}</AlertDescription>
+          <AlertDescription>{analysisError}</AlertDescription>
         </Alert>
       )}
 
       {analysisResult && (
         <Card className="shadow-lg">
           <CardHeader>
-            <CardTitle className="font-headline text-xl">Conceptual ICT Analysis</CardTitle>
-            <CardDescription>Based on the provided simulated data and descriptions.</CardDescription>
+            <CardTitle className="font-headline text-xl">Conceptual Market Analysis</CardTitle>
+            <CardDescription>Based on the provided data and descriptions.</CardDescription>
           </CardHeader>
           <CardContent className="space-y-4">
             <div>
@@ -222,7 +256,7 @@ export function LiveMarketDataDisplay() {
               </ul>
             </div>
             <div>
-              <Label className="text-sm font-medium text-muted-foreground">Suggested Focus for ICT Trader</Label>
+              <Label className="text-sm font-medium text-muted-foreground">Suggested Focus</Label>
               <p className="text-sm mt-1 p-3 bg-muted/50 rounded-md">{analysisResult.suggestedFocus}</p>
             </div>
           </CardContent>
@@ -231,10 +265,3 @@ export function LiveMarketDataDisplay() {
     </div>
   );
 }
-
-// Helper Label if not globally available
-// const Label = ({ className, children, ...props }: React.LabelHTMLAttributes<HTMLLabelElement> & { children: React.ReactNode }) => (
-//   <label className={`block text-sm font-medium text-foreground ${className}`} {...props}>
-//     {children}
-//   </label>
-// );
