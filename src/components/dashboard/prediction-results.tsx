@@ -5,8 +5,10 @@ import Image from "next/image";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
 import { Badge } from "@/components/ui/badge";
-import { TrendingUp, TrendingDown, Minus, CandlestickChart, BarChart2, Lightbulb, Zap, Workflow, Layers3, Info } from "lucide-react";
+import { TrendingUp, TrendingDown, Minus, CandlestickChart, BarChart2, Lightbulb, Zap, Workflow, Layers3, Info, ThumbsUp, ThumbsDown } from "lucide-react";
 import type { PredictionOutput, AnalysisOutput } from "@/types";
+import { Button } from "@/components/ui/button";
+import { useToast } from "@/hooks/use-toast";
 
 interface PredictionResultsProps {
   prediction: PredictionOutput;
@@ -28,6 +30,25 @@ const MarketDirectionIcon = ({ direction }: { direction: PredictionOutput['marke
 };
 
 export function PredictionResults({ prediction, analysis, imagePreviewUrl }: PredictionResultsProps) {
+  const { toast } = useToast();
+
+  const handleFeedback = (feedbackType: 'positive' | 'negative') => {
+    toast({
+      title: "Feedback Received",
+      description: `Thank you for your ${feedbackType === 'positive' ? 'positive' : 'negative'} feedback! While the system cannot learn from this in real-time for the very next analysis, this input is valuable for future improvements.`,
+      duration: 5000, // Show toast for 5 seconds
+    });
+    // In a more advanced system, you would store this feedback:
+    // For example:
+    // storeFeedbackOnServer({
+    //   inputDetails: { imagePreviewUrl, analysisParameters: { ... } }, // context of the analysis
+    //   predictionOutput: prediction,
+    //   analysisOutput: analysis,
+    //   userFeedback: feedbackType,
+    //   timestamp: new Date().toISOString()
+    // });
+  };
+
   return (
     <div className="grid gap-6 lg:grid-cols-2">
       {imagePreviewUrl && (
@@ -163,6 +184,17 @@ export function PredictionResults({ prediction, analysis, imagePreviewUrl }: Pre
           <div>
             <Label className="text-sm font-medium">Analysis Summary</Label>
             <p className="text-sm text-muted-foreground mt-1 whitespace-pre-wrap">{analysis.summary}</p>
+          </div>
+          <div className="mt-6 pt-4 border-t border-border">
+            <Label className="text-sm font-medium text-muted-foreground">Was this analysis helpful?</Label>
+            <div className="flex space-x-2 mt-2">
+              <Button variant="outline" size="sm" onClick={() => handleFeedback('positive')}>
+                <ThumbsUp className="mr-2 h-4 w-4" /> Helpful
+              </Button>
+              <Button variant="outline" size="sm" onClick={() => handleFeedback('negative')}>
+                <ThumbsDown className="mr-2 h-4 w-4" /> Not Helpful
+              </Button>
+            </div>
           </div>
         </CardContent>
       </Card>
