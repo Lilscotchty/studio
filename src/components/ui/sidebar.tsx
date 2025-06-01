@@ -1,3 +1,4 @@
+
 "use client"
 
 import * as React from "react"
@@ -91,10 +92,15 @@ const SidebarProvider = React.forwardRef<
 
     // Helper to toggle the sidebar.
     const toggleSidebar = React.useCallback(() => {
-      return isMobile
-        ? setOpenMobile((open) => !open)
-        : setOpen((open) => !open)
+      // For mobile, this would toggle the Sheet (drawer) if we implement a hamburger menu.
+      // For desktop, it toggles the collapsible sidebar state.
+      if (isMobile) {
+        setOpenMobile((current) => !current); 
+      } else {
+        setOpen((current) => !current);
+      }
     }, [isMobile, setOpen, setOpenMobile])
+
 
     // Adds a keyboard shortcut to toggle the sidebar.
     React.useEffect(() => {
@@ -168,37 +174,30 @@ const Sidebar = React.forwardRef<
     {
       side = "left",
       variant = "sidebar",
-      collapsible = "offcanvas",
+      collapsible = "icon", // Default to icon for desktop
       className,
       children,
       ...props
     },
     ref
   ) => {
-    const { isMobile, state, openMobile, setOpenMobile } = useSidebar()
+    const { isMobile, state, openMobile, setOpenMobile, open } = useSidebar()
+    const currentCollapsible = isMobile ? "offcanvas" : collapsible;
+    const desktopState = open ? "expanded" : "collapsed";
 
-    if (collapsible === "none") {
-      return (
-        <div
-          className={cn(
-            "flex h-full w-[--sidebar-width] flex-col bg-sidebar text-sidebar-foreground",
-            className
-          )}
-          ref={ref}
-          {...props}
-        >
-          {children}
-        </div>
-      )
-    }
 
     if (isMobile) {
+      // On mobile, the sidebar should behave as a drawer (Sheet)
+      // It's controlled by `openMobile` and `setOpenMobile` via a trigger (e.g., hamburger icon)
+      // which would typically be in a mobile header (not implemented here yet).
+      // For now, it means it won't be visible unless a trigger sets `openMobile` to true.
+      // If a BottomNavigation is the primary mobile nav, this Sheet sidebar might be for secondary actions or settings.
       return (
         <Sheet open={openMobile} onOpenChange={setOpenMobile} {...props}>
           <SheetContent
             data-sidebar="sidebar"
             data-mobile="true"
-            className="w-[--sidebar-width] bg-sidebar p-0 text-sidebar-foreground [&>button]:hidden"
+            className={cn("w-[--sidebar-width] bg-sidebar p-0 text-sidebar-foreground [&>button]:hidden", className)}
             style={
               {
                 "--sidebar-width": SIDEBAR_WIDTH_MOBILE,
@@ -211,21 +210,43 @@ const Sidebar = React.forwardRef<
         </Sheet>
       )
     }
+    
+    // Desktop Sidebar Logic
+    if (currentCollapsible === "none") {
+      return (
+        <div
+          className={cn(
+            "flex h-full w-[--sidebar-width] flex-col bg-sidebar text-sidebar-foreground",
+            className,
+            "hidden md:flex" // Ensure it's hidden on mobile
+          )}
+          ref={ref}
+          {...props}
+        >
+          {children}
+        </div>
+      )
+    }
+
 
     return (
+      // Desktop sidebar is controlled by `state` (derived from `open`)
+      // The "hidden md:flex" ensures it's only part of the layout on md+ screens.
+      // The actual rendering and collapsing logic is handled by the inner divs.
       <div
         ref={ref}
-        className="group peer hidden md:block text-sidebar-foreground"
-        data-state={state}
-        data-collapsible={state === "collapsed" ? collapsible : ""}
+        className={cn("group peer text-sidebar-foreground hidden md:block", className)} // Ensures this whole block is hidden on mobile
+        data-state={desktopState}
+        data-collapsible={desktopState === "collapsed" ? currentCollapsible : ""}
         data-variant={variant}
         data-side={side}
+        {...props}
       >
         {/* This is what handles the sidebar gap on desktop */}
         <div
           className={cn(
             "duration-200 relative h-svh w-[--sidebar-width] bg-transparent transition-[width] ease-linear",
-            "group-data-[collapsible=offcanvas]:w-0",
+            "group-data-[collapsible=offcanvas]:w-0", // Not used for icon collapse
             "group-data-[side=right]:rotate-180",
             variant === "floating" || variant === "inset"
               ? "group-data-[collapsible=icon]:w-[calc(var(--sidebar-width-icon)_+_theme(spacing.4))]"
@@ -234,17 +255,15 @@ const Sidebar = React.forwardRef<
         />
         <div
           className={cn(
-            "duration-200 fixed inset-y-0 z-10 hidden h-svh w-[--sidebar-width] transition-[left,right,width] ease-linear md:flex",
+            "duration-200 fixed inset-y-0 z-10 flex h-svh w-[--sidebar-width] transition-[left,right,width] ease-linear",
             side === "left"
-              ? "left-0 group-data-[collapsible=offcanvas]:left-[calc(var(--sidebar-width)*-1)]"
+              ? "left-0 group-data-[collapsible=offcanvas]:left-[calc(var(--sidebar-width)*-1)]" // For offcanvas on larger screens if used
               : "right-0 group-data-[collapsible=offcanvas]:right-[calc(var(--sidebar-width)*-1)]",
             // Adjust the padding for floating and inset variants.
             variant === "floating" || variant === "inset"
               ? "p-2 group-data-[collapsible=icon]:w-[calc(var(--sidebar-width-icon)_+_theme(spacing.4)_+2px)]"
-              : "group-data-[collapsible=icon]:w-[--sidebar-width-icon] group-data-[side=left]:border-r group-data-[side=right]:border-l",
-            className
+              : "group-data-[collapsible=icon]:w-[--sidebar-width-icon] group-data-[side=left]:border-r group-data-[side=right]:border-l"
           )}
-          {...props}
         >
           <div
             data-sidebar="sidebar"
@@ -323,7 +342,15 @@ const SidebarInset = React.forwardRef<
       ref={ref}
       className={cn(
         "relative flex min-h-svh flex-1 flex-col bg-background",
-        "peer-data-[variant=inset]:min-h-[calc(100svh-theme(spacing.4))] md:peer-data-[variant=inset]:m-2 md:peer-data-[state=collapsed]:peer-data-[variant=inset]:ml-2 md:peer-data-[variant=inset]:ml-0 md:peer-data-[variant=inset]:rounded-xl md:peer-data-[variant=inset]:shadow",
+        // Desktop inset styling for sidebar variant="inset"
+        "md:peer-data-[variant=inset]:min-h-[calc(100svh-theme(spacing.4))]",
+        "md:peer-data-[variant=inset]:m-2",
+        "md:peer-data-[state=collapsed]:peer-data-[variant=inset]:ml-2", 
+        "md:peer-data-[variant=inset]:ml-0", // Default margin left if sidebar is open and variant is inset
+        "md:peer-data-[variant=inset]:rounded-xl",
+        "md:peer-data-[variant=inset]:shadow",
+        // Mobile specific adjustments
+        "w-full", // Ensure it takes full width on mobile
         className
       )}
       {...props}
