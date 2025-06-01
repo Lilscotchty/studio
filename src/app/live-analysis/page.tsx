@@ -9,7 +9,7 @@ export default function LiveAnalysisPage() {
           Live Market <span className="text-accent">Analysis (Prototype)</span>
         </h1>
         <p className="mt-3 text-lg text-muted-foreground max-w-xl mx-auto">
-          Simulate live market data and get AI-powered ICT conceptual analysis. This is a prototype to demonstrate potential functionality.
+          Simulate live market data and get advanced ICT conceptual analysis. This is a prototype to demonstrate potential functionality.
         </p>
       </header>
 

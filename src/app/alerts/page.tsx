@@ -61,7 +61,7 @@ export default function AlertsPage() {
           Alert <span className="text-accent">System</span>
         </h1>
         <p className="mt-3 text-lg text-muted-foreground max-w-xl mx-auto">
-          Stay informed about market changes and AI prediction updates with customizable alerts.
+          Stay informed about market changes and prediction updates with customizable alerts.
         </p>
       </header>
 

@@ -23,7 +23,7 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
           <div className="flex items-center gap-2">
             <BotIcon className="h-8 w-8 text-accent" />
             <h1 className="text-xl font-headline font-semibold group-data-[collapsible=icon]:hidden">
-              MarketVision AI
+              MarketVision
             </h1>
           </div>
           <SidebarTrigger className="group-data-[collapsible=icon]:hidden" />

@@ -1,11 +1,12 @@
+
 import type { Metadata } from 'next';
 import './globals.css';
 import { AppLayout } from '@/components/layout/app-layout';
 import { Toaster } from "@/components/ui/toaster";
 
 export const metadata: Metadata = {
-  title: 'MarketVision AI',
-  description: 'Advanced trading prediction Bot by MarketVision AI',
+  title: 'MarketVision',
+  description: 'Advanced trading prediction Bot by MarketVision',
 };
 
 export default function RootLayout({

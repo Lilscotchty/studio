@@ -116,7 +116,7 @@ export default function PerformancePage() {
           Performance <span className="text-accent">Metrics</span>
         </h1>
         <p className="mt-3 text-lg text-muted-foreground max-w-xl mx-auto">
-          Track the history of AI predictions and evaluate their performance over time.
+          Track the history of predictions and evaluate their performance over time.
         </p>
       </header>
 

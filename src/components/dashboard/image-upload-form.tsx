@@ -68,7 +68,7 @@ export function ImageUploadForm() {
         <CardHeader>
           <CardTitle className="font-headline text-2xl">Upload Candlestick Chart</CardTitle>
           <CardDescription>
-            Upload an image of a candlestick chart to get AI-powered market predictions and analysis.
+            Upload an image of a candlestick chart to get market predictions and analysis.
           </CardDescription>
         </CardHeader>
         <form action={formAction}>

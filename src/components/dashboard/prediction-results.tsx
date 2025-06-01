@@ -55,7 +55,7 @@ export function PredictionResults({ prediction, analysis, imagePreviewUrl }: Pre
           <CardTitle className="font-headline text-xl flex items-center gap-2">
              <BarChart2 className="text-accent"/> Market Prediction
           </CardTitle>
-          <CardDescription>AI-generated insights based on the chart analysis.</CardDescription>
+          <CardDescription>Generated insights based on the chart analysis.</CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
           <div>
