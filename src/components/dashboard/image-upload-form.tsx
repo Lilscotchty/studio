@@ -2,7 +2,8 @@
 "use client";
 
 import React, { useState, useRef } from "react";
-import { useFormState, useFormStatus } from "react-dom";
+import { useActionState } from "react"; // Changed from react-dom
+import { useFormStatus } from "react-dom"; // useFormStatus remains from react-dom
 import Image from "next/image";
 import { handleImageAnalysisAction, type AnalysisResult } from "@/lib/actions";
 import { Button } from "@/components/ui/button";
@@ -35,7 +36,7 @@ function SubmitButton() {
 
 export function ImageUploadForm() {
   const initialState: AnalysisResult | undefined = undefined;
-  const [state, formAction] = useFormState(handleImageAnalysisAction, initialState);
+  const [state, formAction] = useActionState(handleImageAnalysisAction, initialState); // Changed useFormState to useActionState
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
@@ -57,8 +58,8 @@ export function ImageUploadForm() {
     if (fileInputRef.current) {
       fileInputRef.current.value = "";
     }
-    // To reset formState, we'd need to re-initialize the form or pass a reset action to useFormState if it supported it.
-    // For now, this just clears the visual preview and input. The `state` from useFormState will persist until next submission.
+    // To reset formState, we'd need to re-initialize the form or pass a reset action to useActionState if it supported it.
+    // For now, this just clears the visual preview and input. The `state` from useActionState will persist until next submission.
     // A full reset of `state` would typically involve a new key on the form or component.
   };
 
