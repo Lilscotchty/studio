@@ -1,14 +1,14 @@
 
 import type { AnalyzeCandlestickChartOutput } from '@/ai/flows/analyze-candlestick-chart';
 import type { PredictMarketMovementOutput } from '@/ai/flows/predict-market-movement';
-import type { AnalyzeMarketDataInput as AMDI, AnalyzeMarketDataOutput as AMDO } from '@/ai/flows/analyze-market-data-flow';
+import type { AnalyzeMarketDataInput as AMDI_TYPE, AnalyzeMarketDataOutput as AMDO_TYPE } from '@/ai/flows/analyze-market-data-flow';
 
 
 export interface UploadedImageAnalysis {
   id: string;
   imageName: string;
   imageUrl: string; 
-  analysisResult?: AnalysisOutput; // Corrected type usage
+  analysisResult?: AnalysisOutput;
   predictionResult?: PredictionOutput;
   timestamp: Date;
   flaggedStatus?: 'successful' | 'unsuccessful' | null;
@@ -25,7 +25,7 @@ export interface AlertConfig {
 }
 
 export type PredictionOutput = PredictMarketMovementOutput['prediction'];
-export type AnalysisOutput = AnalyzeCandlestickChartOutput; // This now includes ICT elements and potential AMD cycle observations
+export type AnalysisOutput = AnalyzeCandlestickChartOutput;
 
 export interface HistoricalPrediction {
   id: string;
@@ -37,8 +37,8 @@ export interface HistoricalPrediction {
   manualFlag?: 'successful' | 'unsuccessful';
 }
 
-export type AnalyzeMarketDataInput = AMDI;
-export type AnalyzeMarketDataOutput = AMDO;
+export type AnalyzeMarketDataInput = AMDI_TYPE;
+export type AnalyzeMarketDataOutput = AMDO_TYPE;
 
 // For Alpha Vantage Global Quote
 export interface AlphaVantageGlobalQuote {
@@ -54,3 +54,4 @@ export interface AlphaVantageGlobalQuote {
   changePercent: string;
 }
 
+export type TradingSession = AnalyzeMarketDataInput['activeTradingSession'];

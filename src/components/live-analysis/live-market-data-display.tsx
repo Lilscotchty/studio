@@ -11,11 +11,13 @@ import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription, CardFooter } from "@/components/ui/card";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
-import { AlertCircle, CheckCircle, Loader2, Activity, Brain, Search } from "lucide-react";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { AlertCircle, CheckCircle, Loader2, Activity, Brain, Search, Clock } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { analyzeMarketData, type AnalyzeMarketDataInput, type AnalyzeMarketDataOutput } from "@/ai/flows/analyze-market-data-flow";
 import { fetchMarketDataFromAV, type FetchMarketDataResult } from "@/lib/actions";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
+import type { TradingSession } from "@/types";
 
 const marketDataSchema = z.object({
   assetSymbol: z.string().min(1, "Asset symbol is required (e.g., IBM, AAPL)").max(10, "Symbol too long.").default("IBM"),
@@ -24,7 +26,24 @@ const marketDataSchema = z.object({
   recentLow: z.number({invalid_type_error: "Recent low must be a number."}).positive("Recent low must be positive"),
   marketTrendDescription: z.string().min(10, "Trend description is too short.").max(300, "Trend description is too long."),
   keyLevelsDescription: z.string().max(300, "Key levels description is too long.").optional(),
+  activeTradingSession: z.enum([
+    "None/Overlap",
+    "Asia",
+    "London Open",
+    "London Close",
+    "New York AM",
+    "New York PM"
+  ]).optional(),
 });
+
+const tradingSessions: NonNullable<TradingSession>[] = [
+  "None/Overlap",
+  "Asia",
+  "London Open",
+  "London Close",
+  "New York AM",
+  "New York PM"
+];
 
 export function LiveMarketDataDisplay() {
   const { toast } = useToast();
@@ -44,6 +63,7 @@ export function LiveMarketDataDisplay() {
       recentLow: 0,
       marketTrendDescription: "Currently in a short-term uptrend, approaching recent highs after a small pullback.",
       keyLevelsDescription: "Potential resistance at recent highs. Bullish order block visible around prior lows.",
+      activeTradingSession: "None/Overlap",
     },
   });
 
@@ -63,8 +83,8 @@ export function LiveMarketDataDisplay() {
     } else if (result.data) {
       form.setValue("assetSymbol", result.data.symbol);
       form.setValue("currentPrice", result.data.price);
-      form.setValue("recentHigh", result.data.high); // Using daily high as recentHigh
-      form.setValue("recentLow", result.data.low);   // Using daily low as recentLow
+      form.setValue("recentHigh", result.data.high); 
+      form.setValue("recentLow", result.data.low);   
       toast({ title: "Data Fetched", description: `Market data for ${result.data.symbol} updated.` });
     }
   };
@@ -74,7 +94,11 @@ export function LiveMarketDataDisplay() {
     setAnalysisError(null);
     setAnalysisResult(null);
     try {
-      const result = await analyzeMarketData(values);
+      const inputForAI: AnalyzeMarketDataInput = { ...values };
+      if (values.activeTradingSession === "None/Overlap") {
+        inputForAI.activeTradingSession = undefined;
+      }
+      const result = await analyzeMarketData(inputForAI);
       setAnalysisResult(result);
       toast({
         title: "Analysis Complete",
@@ -98,7 +122,7 @@ export function LiveMarketDataDisplay() {
       <Card className="shadow-lg">
         <CardHeader>
           <CardTitle className="font-headline text-xl flex items-center gap-2"><Activity className="text-accent" />Market Data Input</CardTitle>
-          <CardDescription>Fetch market data for a symbol or enter manually, then analyze.</CardDescription>
+          <CardDescription>Fetch market data for a symbol, specify session, then analyze conceptually.</CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
           <div className="flex items-end gap-2">
@@ -128,6 +152,29 @@ export function LiveMarketDataDisplay() {
         <Form {...form}>
           <form onSubmit={form.handleSubmit(onSubmitAnalysis)}>
             <CardContent className="space-y-6 pt-0">
+               <FormField
+                control={form.control}
+                name="activeTradingSession"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel className="flex items-center gap-1"><Clock className="h-4 w-4"/>Perceived Trading Session</FormLabel>
+                    <Select onValueChange={field.onChange} defaultValue={field.value || "None/Overlap"}>
+                      <FormControl>
+                        <SelectTrigger>
+                          <SelectValue placeholder="Select current session (optional)" />
+                        </SelectTrigger>
+                      </FormControl>
+                      <SelectContent>
+                        {tradingSessions.map(session => (
+                          <SelectItem key={session} value={session}>{session}</SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                    <FormDescription>Helps contextualize session-specific patterns like Silver Bullet.</FormDescription>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
               <FormField
                 control={form.control}
                 name="assetSymbol"
@@ -240,7 +287,7 @@ export function LiveMarketDataDisplay() {
         <Card className="shadow-lg">
           <CardHeader>
             <CardTitle className="font-headline text-xl">Conceptual Market Analysis</CardTitle>
-            <CardDescription>Based on the provided data and descriptions.</CardDescription>
+            <CardDescription>Based on the provided data, descriptions, and selected session.</CardDescription>
           </CardHeader>
           <CardContent className="space-y-4">
             <div>
@@ -257,7 +304,7 @@ export function LiveMarketDataDisplay() {
             </div>
             <div>
               <Label className="text-sm font-medium text-muted-foreground">Suggested Focus</Label>
-              <p className="text-sm mt-1 p-3 bg-muted/50 rounded-md">{analysisResult.suggestedFocus}</p>
+              <p className="text-sm mt-1 p-3 bg-muted/50 rounded-md whitespace-pre-wrap">{analysisResult.suggestedFocus}</p>
             </div>
           </CardContent>
         </Card>
@@ -265,3 +312,4 @@ export function LiveMarketDataDisplay() {
     </div>
   );
 }
+
