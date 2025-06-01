@@ -8,12 +8,13 @@ import {
   SidebarMenuItem,
   SidebarMenuButton,
 } from "@/components/ui/sidebar";
-import { LayoutDashboard, BellRing, History, UploadCloud } from "lucide-react"; // Added UploadCloud for consistency if needed
+import { LayoutDashboard, BellRing, History, Activity } from "lucide-react"; // Changed UploadCloud to Activity for live analysis
 
 const navItems = [
   { href: "/", label: "Dashboard", icon: LayoutDashboard },
   { href: "/alerts", label: "Alerts", icon: BellRing },
   { href: "/performance", label: "Performance", icon: History },
+  { href: "/live-analysis", label: "Live Analysis", icon: Activity }, // New navigation item
 ];
 
 export function SidebarNav() {
