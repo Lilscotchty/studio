@@ -10,13 +10,13 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription, CardFooter } from "@/components/ui/card";
-import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
+import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage, FormDescription } from "@/components/ui/form";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { AlertCircle, CheckCircle, Loader2, Activity, Brain, Search, Clock } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { analyzeMarketData, type AnalyzeMarketDataInput, type AnalyzeMarketDataOutput } from "@/ai/flows/analyze-market-data-flow";
 import { fetchMarketDataFromAV, type FetchMarketDataResult } from "@/lib/actions";
-import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
+import { Alert, AlertDescription as ShadcnAlertDescription, AlertTitle as ShadcnAlertTitle } from "@/components/ui/alert";
 import type { TradingSession } from "@/types";
 
 const marketDataSchema = z.object({
@@ -144,8 +144,8 @@ export function LiveMarketDataDisplay() {
           {fetchDataError && (
             <Alert variant="destructive">
               <AlertCircle className="h-4 w-4" />
-              <AlertTitle>Data Fetch Error</AlertTitle>
-              <AlertDescription>{fetchDataError}</AlertDescription>
+              <ShadcnAlertTitle>Data Fetch Error</ShadcnAlertTitle>
+              <ShadcnAlertDescription>{fetchDataError}</ShadcnAlertDescription>
             </Alert>
           )}
         </CardContent>
@@ -278,8 +278,8 @@ export function LiveMarketDataDisplay() {
       {analysisError && (
         <Alert variant="destructive">
           <AlertCircle className="h-4 w-4" />
-          <AlertTitle>Analysis Error</AlertTitle>
-          <AlertDescription>{analysisError}</AlertDescription>
+          <ShadcnAlertTitle>Analysis Error</ShadcnAlertTitle>
+          <ShadcnAlertDescription>{analysisError}</ShadcnAlertDescription>
         </Alert>
       )}
 
