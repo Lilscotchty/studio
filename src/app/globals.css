@@ -1,38 +1,39 @@
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
 
 @layer base {
   :root {
-    --background: 0 0% 13.3%; /* #222222 Dark Gray */
-    --foreground: 0 0% 87.8%; /* #E0E0E0 Light Gray */
+    --background: 220 20% 7%; /* Very Dark Desaturated Blue */
+    --foreground: 210 40% 98%; /* Almost White, slight cool tint */
 
-    --card: 0 0% 16.5%; /* #2A2A2A Slightly Lighter Dark Gray */
-    --card-foreground: 0 0% 87.8%; /* #E0E0E0 Light Gray */
+    --card: 220 20% 10%; /* Slightly lighter than background for cards */
+    --card-foreground: 210 40% 98%;
 
-    --popover: 0 0% 10%; /* Darker for popovers */
-    --popover-foreground: 0 0% 87.8%;
+    --popover: 220 20% 5%; /* Even darker for popovers */
+    --popover-foreground: 210 40% 98%;
 
-    --primary: 275 100% 25.3%; /* #4B0082 Deep Indigo */
-    --primary-foreground: 0 0% 100%; /* #FFFFFF White */
+    --primary: 270 80% 65%; /* Vibrant Indigo/Purple */
+    --primary-foreground: 210 40% 98%; /* High contrast foreground for primary */
 
-    --secondary: 0 0% 20%; /* Darker secondary */
-    --secondary-foreground: 0 0% 90%;
+    --secondary: 220 15% 25%; /* Muted Dark Blue/Gray for secondary elements */
+    --secondary-foreground: 210 40% 90%;
 
-    --muted: 0 0% 20%;
-    --muted-foreground: 0 0% 60%;
+    --muted: 220 15% 18%; /* Darker muted background */
+    --muted-foreground: 220 10% 60%; /* Subtle muted text */
 
-    --accent: 285 100% 50%; /* #BF00FF Electric Purple */
-    --accent-foreground: 0 0% 100%; /* #FFFFFF White */
+    --accent: 285 85% 60%; /* Electric Purple */
+    --accent-foreground: 0 0% 100%; /* White on accent */
 
-    --destructive: 0 72.2% 50.6%; /* Adjusted for dark theme */
+    --destructive: 0 70% 55%; /* Slightly desaturated red */
     --destructive-foreground: 0 0% 98%;
 
-    --border: 0 0% 26.7%; /* #444444 Gray */
-    --input: 0 0% 20%; /* Darker input background */
-    --ring: 285 100% 60%; /* Brighter Electric Purple for ring */
+    --border: 220 15% 20%; /* Subtle border, darker */
+    --input: 220 15% 15%; /* Dark input fields */
+    --ring: 280 80% 70%; /* Ring color, related to accent/primary */
 
-    --radius: 0.5rem;
+    --radius: 0.75rem; /* Larger radius for modern feel */
 
     /* Chart colors - can be adjusted for better visibility on dark theme */
     --chart-1: 285 80% 70%; /* Lighter Purple */
@@ -42,37 +43,37 @@
     --chart-5: 120 50% 55%; /* A contrasting green */
     
     /* Sidebar Colors for Dark Theme */
-    --sidebar-background: 0 0% 10%; /* Darker than main background */
-    --sidebar-foreground: 0 0% 80%; /* Light gray for text */
-    --sidebar-primary: 285 100% 50%; /* Electric Purple for active/primary items */
-    --sidebar-primary-foreground: 0 0% 100%; /* White */
-    --sidebar-accent: 0 0% 15%; /* Slightly lighter for hover */
-    --sidebar-accent-foreground: 0 0% 90%;
-    --sidebar-border: 0 0% 20%; /* Subtle border */
-    --sidebar-ring: 285 100% 60%; /* Electric Purple for focus ring */
+    --sidebar-background: 220 20% 5%; /* Even darker than main bg */
+    --sidebar-foreground: 210 30% 85%; /* Softer foreground for sidebar */
+    --sidebar-primary: 285 85% 60%; /* Main accent for active items */
+    --sidebar-primary-foreground: 0 0% 100%;
+    --sidebar-accent: 220 20% 12%; /* Hover state for sidebar items */
+    --sidebar-accent-foreground: 210 40% 95%;
+    --sidebar-border: 220 15% 15%; /* Subtle sidebar border */
+    --sidebar-ring: 285 85% 70%; /* Ring for sidebar focus */
   }
 
   .dark {
-    /* Keep dark variables same as root for forced dark theme */
-    --background: 0 0% 13.3%;
-    --foreground: 0 0% 87.8%;
-    --card: 0 0% 16.5%;
-    --card-foreground: 0 0% 87.8%;
-    --popover: 0 0% 10%;
-    --popover-foreground: 0 0% 87.8%;
-    --primary: 275 100% 25.3%;
-    --primary-foreground: 0 0% 100%;
-    --secondary: 0 0% 20%;
-    --secondary-foreground: 0 0% 90%;
-    --muted: 0 0% 20%;
-    --muted-foreground: 0 0% 60%;
-    --accent: 285 100% 50%;
+    /* Apply new dark theme variables */
+    --background: 220 20% 7%;
+    --foreground: 210 40% 98%;
+    --card: 220 20% 10%;
+    --card-foreground: 210 40% 98%;
+    --popover: 220 20% 5%;
+    --popover-foreground: 210 40% 98%;
+    --primary: 270 80% 65%;
+    --primary-foreground: 210 40% 98%;
+    --secondary: 220 15% 25%;
+    --secondary-foreground: 210 40% 90%;
+    --muted: 220 15% 18%;
+    --muted-foreground: 220 10% 60%;
+    --accent: 285 85% 60%;
     --accent-foreground: 0 0% 100%;
-    --destructive: 0 72.2% 50.6%;
+    --destructive: 0 70% 55%;
     --destructive-foreground: 0 0% 98%;
-    --border: 0 0% 26.7%;
-    --input: 0 0% 20%;
-    --ring: 285 100% 60%;
+    --border: 220 15% 20%;
+    --input: 220 15% 15%;
+    --ring: 280 80% 70%;
 
     --chart-1: 285 80% 70%;
     --chart-2: 275 70% 60%;
@@ -80,14 +81,14 @@
     --chart-4: 30 80% 60%;
     --chart-5: 120 50% 55%;
     
-    --sidebar-background: 0 0% 10%;
-    --sidebar-foreground: 0 0% 80%;
-    --sidebar-primary: 285 100% 50%;
+    --sidebar-background: 220 20% 5%;
+    --sidebar-foreground: 210 30% 85%;
+    --sidebar-primary: 285 85% 60%;
     --sidebar-primary-foreground: 0 0% 100%;
-    --sidebar-accent: 0 0% 15%;
-    --sidebar-accent-foreground: 0 0% 90%;
-    --sidebar-border: 0 0% 20%;
-    --sidebar-ring: 285 100% 60%;
+    --sidebar-accent: 220 20% 12%;
+    --sidebar-accent-foreground: 210 40% 95%;
+    --sidebar-border: 220 15% 15%;
+    --sidebar-ring: 285 85% 70%;
   }
 }
 

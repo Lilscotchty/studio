@@ -19,7 +19,7 @@ interface AlertListDisplayProps {
 export function AlertListDisplay({ alerts, onToggleAlert, onDeleteAlert }: AlertListDisplayProps) {
   if (alerts.length === 0) {
     return (
-      <Card className="shadow-md">
+      <Card className="shadow-lg">
         <CardHeader>
           <CardTitle className="font-headline text-xl">Active Alerts</CardTitle>
         </CardHeader>
