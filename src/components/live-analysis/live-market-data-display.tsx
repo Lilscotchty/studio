@@ -14,16 +14,34 @@ import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage, FormDes
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { AlertCircle, Loader2, Activity, Brain, Clock, Search, Info, Lightbulb, TrendingUp, TrendingDown, ShieldAlert, CircleDot, Target, StopCircle, CalendarClock } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
-import { analyzeMarketData, AnalyzeMarketDataInputSchema, type AnalyzeMarketDataOutput } from "@/ai/flows/analyze-market-data-flow";
+// Import the main function and the OUTPUT type from the flow. We don't import the schema object.
+import { analyzeMarketData, type AnalyzeMarketDataOutput } from "@/ai/flows/analyze-market-data-flow";
 import { fetchMarketDataFromAV, type FetchMarketDataResult } from "@/lib/actions"; 
 import { Alert, AlertDescription as ShadcnAlertDescription, AlertTitle as ShadcnAlertTitle } from "@/components/ui/alert";
-import type { TradingSession, AlphaVantageGlobalQuote } from "@/types"; 
+// Import AnalyzeMarketDataInput type from src/types for ensuring our local schema matches
+import type { TradingSession, AlphaVantageGlobalQuote, AnalyzeMarketDataInput } from "@/types"; 
 
-// Use the imported schema and extend it for the form's needs
-const marketDataSchema = AnalyzeMarketDataInputSchema.extend({
+// Define the Zod enum for trading sessions locally for form validation
+const LocalTradingSessionEnum = z.enum([
+  "None/Overlap",
+  "Asia",
+  "London Open",
+  "London Close",
+  "New York AM",
+  "New York PM"
+]).optional();
+
+// Define the Zod schema for form validation locally in this client component
+const marketDataFormSchema = z.object({
   symbolToFetch: z.string().optional(), 
+  assetSymbol: z.string().min(1, "Asset symbol is required.").describe("The trading symbol, e.g., BTC/USD, AAPL"),
+  currentPrice: z.number({ required_error: "Current price is required.", invalid_type_error: "Current price must be a number."}),
+  recentHigh: z.number({ required_error: "Recent high is required.", invalid_type_error: "Recent high must be a number."}),
+  recentLow: z.number({ required_error: "Recent low is required.", invalid_type_error: "Recent low must be a number."}),
+  marketTrendDescription: z.string().min(1, "Market trend description is required."),
+  keyLevelsDescription: z.string().optional(),
+  activeTradingSession: LocalTradingSessionEnum
 });
-
 
 const tradingSessionsDisplay: NonNullable<TradingSession>[] = [ 
   "None/Overlap",
@@ -44,8 +62,8 @@ export function LiveMarketDataDisplay() {
   const [fetchDataError, setFetchDataError] = useState<string | null>(null);
 
 
-  const form = useForm<z.infer<typeof marketDataSchema>>({
-    resolver: zodResolver(marketDataSchema),
+  const form = useForm<z.infer<typeof marketDataFormSchema>>({
+    resolver: zodResolver(marketDataFormSchema),
     defaultValues: {
       symbolToFetch: "AAPL", 
       assetSymbol: "NASDAQ:AAPL",
@@ -100,14 +118,15 @@ export function LiveMarketDataDisplay() {
   };
 
 
-  const onSubmitAnalysis = async (values: z.infer<typeof marketDataSchema>) => {
+  const onSubmitAnalysis = async (values: z.infer<typeof marketDataFormSchema>) => {
     setIsAnalyzing(true);
     setAnalysisError(null);
     setAnalysisResult(null);
     try {
       // Exclude symbolToFetch before sending to the AI flow
       const { symbolToFetch, ...analysisInputData } = values;
-      const result = await analyzeMarketData(analysisInputData);
+      // Ensure analysisInputData matches the AnalyzeMarketDataInput type expected by the flow
+      const result = await analyzeMarketData(analysisInputData as AnalyzeMarketDataInput);
       setAnalysisResult(result);
       toast({
         title: "Analysis Complete",
@@ -132,7 +151,7 @@ export function LiveMarketDataDisplay() {
         <CardHeader>
           <CardTitle className="font-headline text-xl flex items-center gap-2"><Activity className="text-accent" />Market Data & Observations</CardTitle>
           <CardDescription>
-            Observe the TradingView chart. Optionally, fetch a quote by entering a symbol (e.g., AAPL, EUR/USD, BTC/USD). Then, manually refine data and add your observations for AI-powered conceptual analysis.
+            Observe the TradingView chart. Optionally, fetch a quote by entering a symbol (e.g., AAPL, EUR/USD, BTCUSD). Then, manually refine data and add your observations for AI-powered conceptual analysis using our data provider.
           </CardDescription>
         </CardHeader>
         <Form {...form}>
@@ -175,7 +194,7 @@ export function LiveMarketDataDisplay() {
                     <ShadcnAlertDescription>
                       {fetchDataError}
                       <br />
-                      Ensure the symbol format is correct (e.g., AAPL for stocks, EUR/USD or EURUSD for Forex, BTC/USD or BTCUSD for Crypto). The quote service may have limitations or require specific symbol formats. For complex assets or if issues persist, please enter data manually. Also, check your API key for the service and its rate limits.
+                      Ensure the symbol format is correct. The quote service may have limitations or require specific symbol formats. For complex assets or if issues persist, please enter data manually. Also, check your API key for the service and its rate limits.
                     </ShadcnAlertDescription>
                   </Alert>
                 )}
@@ -411,3 +430,4 @@ export function LiveMarketDataDisplay() {
     </div>
   );
 }
+

@@ -1,9 +1,11 @@
 
 import type { AnalyzeCandlestickChartOutput } from '@/ai/flows/analyze-candlestick-chart';
 import type { PredictMarketMovementOutput } from '@/ai/flows/predict-market-movement';
-// Correctly import the schema objects themselves, or the inferred types if schemas aren't exported
-import type { AnalyzeMarketDataInputSchema, AnalyzeMarketDataOutputSchema } from '@/ai/flows/analyze-market-data-flow';
-import type { z } from 'zod';
+// Import the TYPES directly from the flow file, not the schema objects
+import type { 
+  AnalyzeMarketDataInput as FlowAnalyzeMarketDataInput, 
+  AnalyzeMarketDataOutput as FlowAnalyzeMarketDataOutput 
+} from '@/ai/flows/analyze-market-data-flow';
 
 
 export interface UploadedImageAnalysis {
@@ -39,13 +41,13 @@ export interface HistoricalPrediction {
   manualFlag?: 'successful' | 'unsuccessful';
 }
 
-// Use z.infer to get the types from the schemas
-export type AnalyzeMarketDataInput = z.infer<typeof AnalyzeMarketDataInputSchema>;
-export type AnalyzeMarketDataOutput = z.infer<typeof AnalyzeMarketDataOutputSchema>;
+// Use the imported types
+export type AnalyzeMarketDataInput = FlowAnalyzeMarketDataInput;
+export type AnalyzeMarketDataOutput = FlowAnalyzeMarketDataOutput;
 
 
-// For the quote service (Alpha Vantage or other) Global Quote
-export interface AlphaVantageGlobalQuote { // Keeping name generic as it's a structure, not tied to AV
+// For the quote service (our data provider) Global Quote
+export interface AlphaVantageGlobalQuote { // Keeping name generic as it's a structure
   symbol: string;
   open: number;
   high: number;
@@ -58,7 +60,6 @@ export interface AlphaVantageGlobalQuote { // Keeping name generic as it's a str
   changePercent: string;
 }
 
-// Ensure TradingSession is derived correctly
+// Ensure TradingSession is derived correctly from the (now correctly imported) AnalyzeMarketDataInput type
 export type TradingSession = AnalyzeMarketDataInput['activeTradingSession'];
 
-```
