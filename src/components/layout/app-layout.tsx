@@ -59,7 +59,7 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
             </div>
           </header>
         )}
-        <div className="p-0 md:p-4 lg:p-6"> {/* Removed redundant padding, rely on page level padding */}
+        <div className="p-3 md:p-4 lg:p-6"> {/* Added p-3 for small consistent padding */}
           {children}
         </div>
       </SidebarInset>
