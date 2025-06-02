@@ -4,40 +4,28 @@
 import React, { useState } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { z } from "zod";
+// import { z } from "zod"; // No longer needed here if schema is imported
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription, CardFooter } from "@/components/ui/card";
-import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage, FormDescription } from "@/components/ui/form";
+import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage, FormDescription as ShadcnFormDescription } from "@/components/ui/form";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { AlertCircle, Loader2, Activity, Brain, Clock, Search } from "lucide-react";
+import { AlertCircle, Loader2, Activity, Brain, Clock, Search, Info, Lightbulb, TrendingUp, TrendingDown, ShieldAlert, CircleDot, Target, StopCircle, CalendarClock } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
-import { analyzeMarketData, type AnalyzeMarketDataInput, type AnalyzeMarketDataOutput } from "@/ai/flows/analyze-market-data-flow";
+import { analyzeMarketData, AnalyzeMarketDataInputSchema, type AnalyzeMarketDataOutput } from "@/ai/flows/analyze-market-data-flow";
 import { fetchMarketDataFromAV, type FetchMarketDataResult } from "@/lib/actions"; 
 import { Alert, AlertDescription as ShadcnAlertDescription, AlertTitle as ShadcnAlertTitle } from "@/components/ui/alert";
 import type { TradingSession, AlphaVantageGlobalQuote } from "@/types"; 
 
-const marketDataSchema = z.object({
+// Use the imported schema
+const marketDataSchema = AnalyzeMarketDataInputSchema.extend({
   symbolToFetch: z.string().optional(), 
-  assetSymbol: z.string().min(1, "Asset symbol is required (e.g., NASDAQ:AAPL, BTC/USD)").max(30, "Symbol too long.").default("NASDAQ:AAPL"), // Increased max length
-  currentPrice: z.number({invalid_type_error: "Current price must be a number."}).positive("Current price must be positive"),
-  recentHigh: z.number({invalid_type_error: "Recent high must be a number."}).positive("Recent high must be positive"),
-  recentLow: z.number({invalid_type_error: "Recent low must be a number."}).positive("Recent low must be positive"),
-  marketTrendDescription: z.string().min(10, "Trend description is too short.").max(300, "Trend description is too long."),
-  keyLevelsDescription: z.string().max(300, "Key levels description is too long.").optional(),
-  activeTradingSession: z.enum([
-    "None/Overlap",
-    "Asia",
-    "London Open",
-    "London Close",
-    "New York AM",
-    "New York PM"
-  ]).optional(),
 });
 
-const tradingSessions: NonNullable<TradingSession>[] = [
+
+const tradingSessionsDisplay: NonNullable<TradingSession>[] = [ // Renamed for clarity from 'tradingSessions'
   "None/Overlap",
   "Asia",
   "London Open",
@@ -79,7 +67,7 @@ export function LiveMarketDataDisplay() {
     setIsFetchingData(true);
     setFetchDataError(null);
     try {
-      const result: FetchMarketDataResult = await fetchMarketDataFromAV(symbol);
+      const result: FetchMarketDataResult = await fetchMarketDataFromAV(symbol); // fetchMarketDataFromAV is generic name
       if (result.error) {
         setFetchDataError(result.error);
         toast({
@@ -89,13 +77,13 @@ export function LiveMarketDataDisplay() {
         });
       } else if (result.data) {
         const fetchedData = result.data;
-        form.setValue("assetSymbol", fetchedData.symbol); // Use symbol from API response (e.g. "EUR/USD")
+        form.setValue("assetSymbol", fetchedData.symbol); 
         form.setValue("currentPrice", fetchedData.price);
         form.setValue("recentHigh", fetchedData.high);
         form.setValue("recentLow", fetchedData.low);
         toast({
           title: "Data Fetched",
-          description: `Successfully fetched quote for ${fetchedData.symbol} (${result.assetType}).`,
+          description: `Successfully fetched quote for ${fetchedData.symbol}${result.assetType ? ` (${result.assetType})` : ''}.`,
         });
       }
     } catch (err) {
@@ -103,7 +91,7 @@ export function LiveMarketDataDisplay() {
       setFetchDataError(errorMessage);
       toast({
         title: "Fetch Error",
-        description: errorMessage,
+        description: `Quote service error: ${errorMessage}`,
         variant: "destructive",
       });
     } finally {
@@ -118,12 +106,8 @@ export function LiveMarketDataDisplay() {
     setAnalysisResult(null);
     try {
       const { symbolToFetch, ...analysisInputData } = values;
-      const inputForAI: AnalyzeMarketDataInput = { ...analysisInputData };
-      if (values.activeTradingSession === "None/Overlap") {
-        inputForAI.activeTradingSession = undefined;
-      }
-
-      const result = await analyzeMarketData(inputForAI);
+      // The schema for analysisInputData is already AnalyzeMarketDataInput
+      const result = await analyzeMarketData(analysisInputData);
       setAnalysisResult(result);
       toast({
         title: "Analysis Complete",
@@ -148,7 +132,7 @@ export function LiveMarketDataDisplay() {
         <CardHeader>
           <CardTitle className="font-headline text-xl flex items-center gap-2"><Activity className="text-accent" />Market Data & Observations</CardTitle>
           <CardDescription>
-            Observe the TradingView chart. You can optionally fetch a quote by entering a symbol below (e.g., AAPL for stocks, EURUSD or EUR/USD for Forex, BTCUSD or BTC/USD for Crypto). Then, manually refine data and add your observations for AI-powered conceptual ICT analysis.
+            Observe the TradingView chart. Optionally, fetch a quote by entering a symbol (e.g., AAPL, EUR/USD, BTC/USD). Then, manually refine data and add your observations for AI-powered conceptual analysis.
           </CardDescription>
         </CardHeader>
         <Form {...form}>
@@ -161,10 +145,10 @@ export function LiveMarketDataDisplay() {
                   name="symbolToFetch"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel className="flex items-center gap-1"><Search className="h-4 w-4" /> Symbol for Quote Fetch</FormLabel>
+                      <FormLabel className="flex items-center gap-1"><Search className="h-4 w-4" /> Symbol for Quote Fetch (Optional)</FormLabel>
                       <div className="flex gap-2 items-center">
                         <FormControl>
-                          <Input {...field} placeholder="e.g., AAPL, EURUSD, BTC/USD" />
+                          <Input {...field} placeholder="e.g., AAPL, EUR/USD, BTCUSD" />
                         </FormControl>
                         <Button type="button" onClick={handleFetchData} disabled={isFetchingData} variant="outline" className="shrink-0">
                           {isFetchingData ? (
@@ -177,9 +161,9 @@ export function LiveMarketDataDisplay() {
                           )}
                         </Button>
                       </div>
-                      <FormDescription>
-                        Enter a Stock (e.g. AAPL), Forex (e.g. EURUSD or EUR/USD), or Crypto (e.g. BTCUSD or BTC/USD) symbol to pre-fill price data. This data is used to populate the fields below.
-                      </FormDescription>
+                      <ShadcnFormDescription>
+                        Enter Stock (e.g. AAPL), Forex (e.g. EUR/USD or EURUSD), or Crypto (e.g. BTC/USD or BTCUSD) symbol. Data pre-fills fields below.
+                      </ShadcnFormDescription>
                       <FormMessage />
                     </FormItem>
                   )}
@@ -191,7 +175,7 @@ export function LiveMarketDataDisplay() {
                     <ShadcnAlertDescription>
                       {fetchDataError}
                       <br />
-                      Ensure the symbol format is correct for the asset type. The quote service may have limitations or require specific symbol formats. For complex assets or if issues persist, please enter data manually.
+                      Ensure the symbol format is correct. The quote service may have limitations. For complex assets or if issues persist, please enter data manually.
                     </ShadcnAlertDescription>
                   </Alert>
                 )}
@@ -211,12 +195,12 @@ export function LiveMarketDataDisplay() {
                         </SelectTrigger>
                       </FormControl>
                       <SelectContent>
-                        {tradingSessions.map(session => (
+                        {tradingSessionsDisplay.map(session => (
                           <SelectItem key={session} value={session}>{session}</SelectItem>
                         ))}
                       </SelectContent>
                     </Select>
-                    <FormDescription>Helps contextualize session-specific patterns like Silver Bullet.</FormDescription>
+                    <ShadcnFormDescription>Helps contextualize session-specific patterns.</ShadcnFormDescription>
                     <FormMessage />
                   </FormItem>
                 )}
@@ -230,7 +214,7 @@ export function LiveMarketDataDisplay() {
                     <FormControl>
                       <Input {...field} placeholder="Enter asset symbol observed in chart" />
                     </FormControl>
-                    <FormDescription>This symbol provides context for the AI. It can be auto-filled by "Fetch Quote" or entered manually.</FormDescription>
+                    <ShadcnFormDescription>This symbol provides context for the AI. Can be auto-filled or entered manually.</ShadcnFormDescription>
                     <FormMessage />
                   </FormItem>
                 )}
@@ -285,7 +269,7 @@ export function LiveMarketDataDisplay() {
                     <FormControl>
                       <Textarea placeholder="e.g., 'Strong uptrend after breaking resistance, now consolidating.'" {...field} rows={3} />
                     </FormControl>
-                    <FormDescription>Describe the trend you observe in the chart.</FormDescription>
+                    <ShadcnFormDescription>Describe the trend you observe in the chart.</ShadcnFormDescription>
                     <FormMessage />
                   </FormItem>
                 )}
@@ -299,7 +283,7 @@ export function LiveMarketDataDisplay() {
                     <FormControl>
                       <Textarea placeholder="e.g., 'Approaching daily order block at 50000. FVG present between 48000-48200.'" {...field} rows={3} />
                     </FormControl>
-                     <FormDescription>Describe any important S/R, OBs, FVGs you see.</FormDescription>
+                     <ShadcnFormDescription>Describe any important S/R, OBs, FVGs you see.</ShadcnFormDescription>
                     <FormMessage />
                   </FormItem>
                 )}
@@ -333,31 +317,99 @@ export function LiveMarketDataDisplay() {
       )}
 
       {analysisResult && (
-        <Card className="shadow-lg">
-          <CardHeader>
-            <CardTitle className="font-headline text-xl">Conceptual Market Analysis Result</CardTitle>
-            <CardDescription>Based on the provided data, descriptions, and selected session.</CardDescription>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            <div>
-              <Label className="text-sm font-medium text-muted-foreground">Potential Bias</Label>
-              <p className="text-lg font-semibold">{analysisResult.potentialBias} (Confidence: {analysisResult.confidence})</p>
-            </div>
-            <div>
-              <Label className="text-sm font-medium text-muted-foreground">Key Observations</Label>
-              <ul className="list-disc pl-5 space-y-1 mt-1">
-                {analysisResult.keyObservations.map((obs, index) => (
-                  <li key={index} className="text-sm">{obs}</li>
-                ))}
-              </ul>
-            </div>
-            <div>
-              <Label className="text-sm font-medium text-muted-foreground">Suggested Focus</Label>
-              <p className="text-sm mt-1 p-3 bg-muted/50 rounded-md whitespace-pre-wrap">{analysisResult.suggestedFocus}</p>
-            </div>
-          </CardContent>
-        </Card>
+        <div className="space-y-6">
+          {/* Simplified Guidance Section */}
+          <Card className="shadow-lg border-accent">
+            <CardHeader>
+              <CardTitle className="font-headline text-xl flex items-center gap-2"><Lightbulb className="text-accent" /> Simplified Conceptual Guidance</CardTitle>
+              <CardDescription>This is AI-generated conceptual guidance for educational purposes. **NOT FINANCIAL ADVICE.**</CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <div className="p-3 bg-destructive/10 border border-destructive/30 rounded-md">
+                  <div className="flex items-start">
+                    <ShieldAlert className="h-5 w-5 text-destructive mr-2 mt-0.5" />
+                    <p className="text-sm text-destructive-foreground">
+                      <strong>Disclaimer:</strong> The information provided is for educational and conceptual purposes only and does not constitute financial advice. Trading involves substantial risk of loss. Always do your own research and consult with a qualified financial advisor before making any trading decisions.
+                    </p>
+                  </div>
+              </div>
+
+              <div>
+                <Label className="text-sm font-medium text-muted-foreground flex items-center gap-1">
+                  {analysisResult.suggestedActionDirection === "Buy" ? <TrendingUp className="h-4 w-4 text-green-500"/> : 
+                   analysisResult.suggestedActionDirection === "Sell" ? <TrendingDown className="h-4 w-4 text-red-500"/> :
+                   <CircleDot className="h-4 w-4 text-yellow-500"/> 
+                  }
+                  Suggested Conceptual Direction
+                </Label>
+                <p className="text-lg font-semibold">{analysisResult.suggestedActionDirection}</p>
+              </div>
+              
+              {analysisResult.potentialEntryZone && (
+                <div>
+                  <Label className="text-sm font-medium text-muted-foreground flex items-center gap-1"><Target className="h-4 w-4"/>Conceptual Entry Zone</Label>
+                  <p className="text-sm mt-1 p-2 bg-muted/50 rounded-md">{analysisResult.potentialEntryZone}</p>
+                </div>
+              )}
+              
+              <div className="grid sm:grid-cols-2 gap-4">
+                {analysisResult.potentialTakeProfitZone && (
+                  <div>
+                    <Label className="text-sm font-medium text-muted-foreground flex items-center gap-1"><Target className="h-4 w-4 text-green-500"/>Conceptual Take Profit Zone</Label>
+                    <p className="text-sm mt-1 p-2 bg-muted/50 rounded-md">{analysisResult.potentialTakeProfitZone}</p>
+                  </div>
+                )}
+                {analysisResult.potentialStopLossLevel && (
+                  <div>
+                    <Label className="text-sm font-medium text-muted-foreground flex items-center gap-1"><StopCircle className="h-4 w-4 text-red-500"/>Conceptual Stop Loss Level</Label>
+                    <p className="text-sm mt-1 p-2 bg-muted/50 rounded-md">{analysisResult.potentialStopLossLevel}</p>
+                  </div>
+                )}
+              </div>
+
+              {analysisResult.conceptualTimeframe && (
+                 <div>
+                  <Label className="text-sm font-medium text-muted-foreground flex items-center gap-1"><CalendarClock className="h-4 w-4"/>Conceptual Timeframe</Label>
+                  <p className="text-sm mt-1 p-2 bg-muted/50 rounded-md">{analysisResult.conceptualTimeframe}</p>
+                </div>
+              )}
+
+              <div>
+                <Label className="text-sm font-medium text-muted-foreground flex items-center gap-1"><Info className="h-4 w-4"/>Simplified Reasoning</Label>
+                <p className="text-sm mt-1 p-3 bg-muted/50 rounded-md whitespace-pre-wrap">{analysisResult.reasoningForNonICTUser}</p>
+              </div>
+            </CardContent>
+          </Card>
+
+          {/* ICT-Specific Analysis Section */}
+          <Card className="shadow-lg">
+            <CardHeader>
+              <CardTitle className="font-headline text-xl flex items-center gap-2"><Brain className="text-primary"/>ICT-Specific Conceptual Analysis</CardTitle>
+              <CardDescription>Detailed conceptual insights for those familiar with ICT methods.</CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <div>
+                <Label className="text-sm font-medium text-muted-foreground">Potential Bias</Label>
+                <p className="text-lg font-semibold">{analysisResult.potentialBias} (Confidence: {analysisResult.confidence})</p>
+              </div>
+              <div>
+                <Label className="text-sm font-medium text-muted-foreground">Key Observations (ICT)</Label>
+                <ul className="list-disc pl-5 space-y-1 mt-1">
+                  {analysisResult.keyObservations.map((obs, index) => (
+                    <li key={index} className="text-sm">{obs}</li>
+                  ))}
+                </ul>
+              </div>
+              <div>
+                <Label className="text-sm font-medium text-muted-foreground">Suggested Focus (ICT)</Label>
+                <p className="text-sm mt-1 p-3 bg-muted/50 rounded-md whitespace-pre-wrap">{analysisResult.suggestedFocusICT}</p>
+              </div>
+            </CardContent>
+          </Card>
+        </div>
       )}
     </div>
   );
 }
+
+```

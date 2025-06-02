@@ -1,7 +1,9 @@
 
 import type { AnalyzeCandlestickChartOutput } from '@/ai/flows/analyze-candlestick-chart';
 import type { PredictMarketMovementOutput } from '@/ai/flows/predict-market-movement';
-import type { AnalyzeMarketDataInput as AMDI_TYPE, AnalyzeMarketDataOutput as AMDO_TYPE } from '@/ai/flows/analyze-market-data-flow';
+// Correctly import the schema objects themselves, or the inferred types if schemas aren't exported
+import type { AnalyzeMarketDataInputSchema, AnalyzeMarketDataOutputSchema } from '@/ai/flows/analyze-market-data-flow';
+import type { z } from 'zod';
 
 
 export interface UploadedImageAnalysis {
@@ -37,11 +39,13 @@ export interface HistoricalPrediction {
   manualFlag?: 'successful' | 'unsuccessful';
 }
 
-export type AnalyzeMarketDataInput = AMDI_TYPE;
-export type AnalyzeMarketDataOutput = AMDO_TYPE;
+// Use z.infer to get the types from the schemas
+export type AnalyzeMarketDataInput = z.infer<typeof AnalyzeMarketDataInputSchema>;
+export type AnalyzeMarketDataOutput = z.infer<typeof AnalyzeMarketDataOutputSchema>;
 
-// For Alpha Vantage Global Quote
-export interface AlphaVantageGlobalQuote {
+
+// For the quote service (Alpha Vantage or other) Global Quote
+export interface AlphaVantageGlobalQuote { // Keeping name generic as it's a structure, not tied to AV
   symbol: string;
   open: number;
   high: number;
@@ -54,4 +58,7 @@ export interface AlphaVantageGlobalQuote {
   changePercent: string;
 }
 
+// Ensure TradingSession is derived correctly
 export type TradingSession = AnalyzeMarketDataInput['activeTradingSession'];
+
+```
