@@ -15,13 +15,13 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { AlertCircle, Loader2, Activity, Brain, Clock, Search } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { analyzeMarketData, type AnalyzeMarketDataInput, type AnalyzeMarketDataOutput } from "@/ai/flows/analyze-market-data-flow";
-import { fetchMarketDataFromAV, type FetchMarketDataResult } from "@/lib/actions"; // Re-added
+import { fetchMarketDataFromAV, type FetchMarketDataResult } from "@/lib/actions"; 
 import { Alert, AlertDescription as ShadcnAlertDescription, AlertTitle as ShadcnAlertTitle } from "@/components/ui/alert";
-import type { TradingSession, AlphaVantageGlobalQuote } from "@/types"; // Re-added AlphaVantageGlobalQuote
+import type { TradingSession, AlphaVantageGlobalQuote } from "@/types"; 
 
 const marketDataSchema = z.object({
-  symbolToFetch: z.string().optional(), // Added for the fetch input
-  assetSymbol: z.string().min(1, "Asset symbol is required (e.g., NASDAQ:AAPL, BTC/USD)").max(20, "Symbol too long.").default("NASDAQ:AAPL"),
+  symbolToFetch: z.string().optional(), 
+  assetSymbol: z.string().min(1, "Asset symbol is required (e.g., NASDAQ:AAPL, BTC/USD)").max(30, "Symbol too long.").default("NASDAQ:AAPL"), // Increased max length
   currentPrice: z.number({invalid_type_error: "Current price must be a number."}).positive("Current price must be positive"),
   recentHigh: z.number({invalid_type_error: "Recent high must be a number."}).positive("Recent high must be positive"),
   recentLow: z.number({invalid_type_error: "Recent low must be a number."}).positive("Recent low must be positive"),
@@ -52,7 +52,6 @@ export function LiveMarketDataDisplay() {
   const [isAnalyzing, setIsAnalyzing] = useState(false);
   const [analysisError, setAnalysisError] = useState<string | null>(null);
 
-  // State for Alpha Vantage fetching
   const [isFetchingData, setIsFetchingData] = useState(false);
   const [fetchDataError, setFetchDataError] = useState<string | null>(null);
 
@@ -60,7 +59,7 @@ export function LiveMarketDataDisplay() {
   const form = useForm<z.infer<typeof marketDataSchema>>({
     resolver: zodResolver(marketDataSchema),
     defaultValues: {
-      symbolToFetch: "AAPL", // Default symbol for fetching
+      symbolToFetch: "AAPL", 
       assetSymbol: "NASDAQ:AAPL",
       currentPrice: 0,
       recentHigh: 0,
@@ -90,13 +89,13 @@ export function LiveMarketDataDisplay() {
         });
       } else if (result.data) {
         const fetchedData = result.data;
-        form.setValue("assetSymbol", fetchedData.symbol);
+        form.setValue("assetSymbol", fetchedData.symbol); // Use symbol from API response (e.g. "EUR/USD")
         form.setValue("currentPrice", fetchedData.price);
         form.setValue("recentHigh", fetchedData.high);
         form.setValue("recentLow", fetchedData.low);
         toast({
           title: "Data Fetched",
-          description: `Successfully fetched quote for ${fetchedData.symbol}.`,
+          description: `Successfully fetched quote for ${fetchedData.symbol} (${result.assetType}).`,
         });
       }
     } catch (err) {
@@ -118,7 +117,6 @@ export function LiveMarketDataDisplay() {
     setAnalysisError(null);
     setAnalysisResult(null);
     try {
-      // Exclude symbolToFetch from the data sent for AI analysis
       const { symbolToFetch, ...analysisInputData } = values;
       const inputForAI: AnalyzeMarketDataInput = { ...analysisInputData };
       if (values.activeTradingSession === "None/Overlap") {
@@ -150,14 +148,13 @@ export function LiveMarketDataDisplay() {
         <CardHeader>
           <CardTitle className="font-headline text-xl flex items-center gap-2"><Activity className="text-accent" />Market Data & Observations</CardTitle>
           <CardDescription>
-            Observe the TradingView chart. You can optionally fetch a quote for common stocks/ETFs using the field below, or manually fill in all data for your AI-powered conceptual ICT analysis.
+            Observe the TradingView chart. You can optionally fetch a quote by entering a symbol below (e.g., AAPL for stocks, EURUSD or EUR/USD for Forex, BTCUSD or BTC/USD for Crypto). Then, manually refine data and add your observations for AI-powered conceptual ICT analysis.
           </CardDescription>
         </CardHeader>
         <Form {...form}>
           <form onSubmit={form.handleSubmit(onSubmitAnalysis)}>
             <CardContent className="space-y-6 pt-4">
 
-              {/* Fetch Quote Section */}
               <div className="border p-4 rounded-md space-y-4 bg-muted/30">
                 <FormField
                   control={form.control}
@@ -167,7 +164,7 @@ export function LiveMarketDataDisplay() {
                       <FormLabel className="flex items-center gap-1"><Search className="h-4 w-4" /> Symbol for Quote Fetch</FormLabel>
                       <div className="flex gap-2 items-center">
                         <FormControl>
-                          <Input {...field} placeholder="e.g., AAPL, MSFT" />
+                          <Input {...field} placeholder="e.g., AAPL, EURUSD, BTC/USD" />
                         </FormControl>
                         <Button type="button" onClick={handleFetchData} disabled={isFetchingData} variant="outline" className="shrink-0">
                           {isFetchingData ? (
@@ -181,7 +178,7 @@ export function LiveMarketDataDisplay() {
                         </Button>
                       </div>
                       <FormDescription>
-                        Enter a stock/ETF symbol to pre-fill price data from Alpha Vantage.
+                        Enter a Stock (e.g. AAPL), Forex (e.g. EURUSD or EUR/USD), or Crypto (e.g. BTCUSD or BTC/USD) symbol to pre-fill price data from Alpha Vantage.
                       </FormDescription>
                       <FormMessage />
                     </FormItem>
@@ -194,7 +191,7 @@ export function LiveMarketDataDisplay() {
                     <ShadcnAlertDescription>
                       {fetchDataError}
                       <br />
-                      Fetching works best for stock/ETF symbols. For other assets (Forex, Crypto), please enter data manually. Ensure your Alpha Vantage API key is configured and has not exceeded its rate limit.
+                      Ensure the symbol format is correct for the asset type. Alpha Vantage API key must be configured and within rate limits. For complex assets or if issues persist, please enter data manually.
                     </ShadcnAlertDescription>
                   </Alert>
                 )}
@@ -229,7 +226,7 @@ export function LiveMarketDataDisplay() {
                 name="assetSymbol"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Asset Symbol for Analysis (e.g., NASDAQ:AAPL, BTC/USD)</FormLabel>
+                    <FormLabel>Asset Symbol for Analysis (e.g., NASDAQ:AAPL, BTC/USD, EUR/USD)</FormLabel>
                     <FormControl>
                       <Input {...field} placeholder="Enter asset symbol observed in chart" />
                     </FormControl>
@@ -364,3 +361,4 @@ export function LiveMarketDataDisplay() {
     </div>
   );
 }
+

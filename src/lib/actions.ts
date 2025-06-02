@@ -69,9 +69,74 @@ export async function handleImageAnalysisAction(
   }
 }
 
+interface AssetInfo {
+  type: 'stock' | 'forex' | 'crypto' | 'unknown';
+  apiSymbol: string; 
+  fromCurrency?: string;
+  toCurrency?: string;
+  market?: string; 
+  originalSymbol: string;
+}
+
+function determineAssetType(symbol: string): AssetInfo {
+  const upperSymbol = symbol.toUpperCase().trim();
+  const originalSymbol = symbol; // Preserve original casing for display if needed
+
+  // Try Forex: EUR/USD, EURUSD
+  if (upperSymbol.includes('/') && upperSymbol.length === 7) { // EUR/USD
+    const parts = upperSymbol.split('/');
+    if (parts.length === 2 && parts[0].length === 3 && parts[1].length === 3 && /^[A-Z]{3}$/.test(parts[0]) && /^[A-Z]{3}$/.test(parts[1])) {
+      return { type: 'forex', fromCurrency: parts[0], toCurrency: parts[1], apiSymbol: '', originalSymbol: `${parts[0]}/${parts[1]}` };
+    }
+  } else if (upperSymbol.length === 6 && !upperSymbol.includes('/') && /^[A-Z]{6}$/.test(upperSymbol)) { // EURUSD
+    const from = upperSymbol.substring(0, 3);
+    const to = upperSymbol.substring(3, 6);
+    return { type: 'forex', fromCurrency: from, toCurrency: to, apiSymbol: '', originalSymbol: `${from}/${to}` };
+  }
+
+  // Try Crypto: BTC/USD, BTCUSD, ETH/EUR, ETHGBP
+  const commonFiats = ['USD', 'EUR', 'GBP', 'JPY', 'CAD', 'AUD', 'CNY', 'INR', 'USDT', 'USDC', 'BUSD'];
+  let match;
+
+  if (upperSymbol.includes('/')) {
+      match = upperSymbol.match(/^([A-Z0-9]{2,5})\/([A-Z]{3,4})$/);
+      if (match) {
+          const crypto = match[1];
+          const fiatMarket = match[2];
+           if (commonFiats.includes(fiatMarket)) {
+            return { type: 'crypto', apiSymbol: crypto, market: fiatMarket, originalSymbol: `${crypto}/${fiatMarket}` };
+          }
+      }
+  } else {
+      // Attempt to match patterns like BTCUSD, ETHGBP
+      // This is trickier as stock symbols can be 3-4 letters. We check if the latter part is a common fiat.
+      if (upperSymbol.length > 3 && upperSymbol.length <= 8) { // e.g. BTCUSD (6), ETHUSDT (7), SOLGBP (6)
+        for (const fiat of commonFiats) {
+            if (upperSymbol.endsWith(fiat)) {
+                const crypto = upperSymbol.substring(0, upperSymbol.length - fiat.length);
+                if (crypto.length >= 2 && crypto.length <=5 && /^[A-Z0-9]+$/.test(crypto)) { // Ensure crypto part is valid
+                     return { type: 'crypto', apiSymbol: crypto, market: fiat, originalSymbol: `${crypto}/${fiat}` };
+                }
+            }
+        }
+      }
+  }
+  
+  // Default to stock for symbols like AAPL, MSFT.
+  // Avoids classifying parts of crypto or forex as stocks if they are short.
+  if (!upperSymbol.includes('/') && upperSymbol.length <= 5 && /^[A-Z0-9\.]+$/.test(upperSymbol) && !commonFiats.includes(upperSymbol)) {
+     return { type: 'stock', apiSymbol: upperSymbol, originalSymbol: upperSymbol };
+  }
+
+
+  return { type: 'unknown', apiSymbol: upperSymbol, originalSymbol: symbol };
+}
+
+
 export interface FetchMarketDataResult {
   data?: AlphaVantageGlobalQuote;
   error?: string;
+  assetType?: 'stock' | 'forex' | 'crypto' | 'unknown';
 }
 
 export async function fetchMarketDataFromAV(symbol: string): Promise<FetchMarketDataResult> {
@@ -80,44 +145,142 @@ export async function fetchMarketDataFromAV(symbol: string): Promise<FetchMarket
     return { error: 'API key for Alpha Vantage is not configured.' };
   }
 
-  const url = `https://www.alphavantage.co/query?function=GLOBAL_QUOTE&symbol=${symbol}&apikey=${apiKey}`;
+  const assetInfo = determineAssetType(symbol);
+  let url = '';
 
+  if (assetInfo.type === 'unknown') {
+    return { error: `Symbol format "${symbol}" not recognized or supported for automatic fetching. Please try formats like AAPL, EUR/USD, or BTC/USD.`, assetType: 'unknown' };
+  }
+  
   try {
-    const response = await fetch(url);
-    if (!response.ok) {
-      return { error: `Alpha Vantage API request failed: ${response.statusText}` };
-    }
-    const data = await response.json();
-    
-    if (data['Error Message']) {
-      return { error: `Alpha Vantage API error: ${data['Error Message']}` };
-    }
-    if (data['Note']) {
-        console.warn('Alpha Vantage API Note:', data['Note']);
-        // Potentially return this note to the user if it indicates a rate limit issue often
-    }
-    
-    const globalQuote = data['Global Quote'];
-    if (!globalQuote || Object.keys(globalQuote).length === 0) {
-        return { error: 'No data returned for the symbol, or symbol not found.' };
+    if (assetInfo.type === 'stock') {
+      url = `https://www.alphavantage.co/query?function=GLOBAL_QUOTE&symbol=${assetInfo.apiSymbol}&apikey=${apiKey}`;
+      const response = await fetch(url);
+      if (!response.ok) {
+        return { error: `Stock API request failed: ${response.statusText}`, assetType: 'stock' };
+      }
+      const data = await response.json();
+      
+      if (data['Error Message']) {
+        return { error: `Alpha Vantage API error (Stock): ${data['Error Message']}`, assetType: 'stock' };
+      }
+      if (data['Note']) {
+          console.warn('Alpha Vantage API Note (Stock):', data['Note']);
+      }
+      
+      const globalQuote = data['Global Quote'];
+      if (!globalQuote || Object.keys(globalQuote).length === 0) {
+          return { error: `No stock data returned for symbol "${assetInfo.apiSymbol}". It might be an unsupported symbol or a non-stock asset. Try formats like EUR/USD or BTC/USD for Forex/Crypto.`, assetType: 'stock' };
+      }
+
+      return {
+        data: {
+          symbol: globalQuote['01. symbol'] || assetInfo.originalSymbol,
+          open: parseFloat(globalQuote['02. open']),
+          high: parseFloat(globalQuote['03. high']),
+          low: parseFloat(globalQuote['04. low']),
+          price: parseFloat(globalQuote['05. price']),
+          volume: parseInt(globalQuote['06. volume'], 10),
+          latestTradingDay: globalQuote['07. latest trading day'],
+          previousClose: parseFloat(globalQuote['08. previous close']),
+          change: parseFloat(globalQuote['09. change']),
+          changePercent: globalQuote['10. change percent'],
+        },
+        assetType: 'stock',
+      };
+    } else if (assetInfo.type === 'forex' && assetInfo.fromCurrency && assetInfo.toCurrency) {
+      url = `https://www.alphavantage.co/query?function=CURRENCY_EXCHANGE_RATE&from_currency=${assetInfo.fromCurrency}&to_currency=${assetInfo.toCurrency}&apikey=${apiKey}`;
+      const response = await fetch(url);
+      if (!response.ok) return { error: `Forex API request failed: ${response.statusText}`, assetType: 'forex' };
+      const data = await response.json();
+      const exchangeRateData = data['Realtime Currency Exchange Rate'];
+      
+      if (data['Error Message'] || !exchangeRateData) {
+        return { error: data['Error Message'] || `No Forex data returned for ${assetInfo.fromCurrency}/${assetInfo.toCurrency}.`, assetType: 'forex' };
+      }
+      if (data['Note']) {
+        console.warn('Alpha Vantage API Note (Forex):', data['Note']);
+      }
+
+      const rate = parseFloat(exchangeRateData['5. Exchange Rate']);
+      const lastRefreshed = exchangeRateData['6. Last Refreshed']?.split(' ')[0] || new Date().toISOString().split('T')[0];
+      
+      return {
+        data: {
+          symbol: assetInfo.originalSymbol,
+          open: rate, 
+          high: rate,
+          low: rate,
+          price: rate,
+          volume: 0, 
+          latestTradingDay: lastRefreshed,
+          previousClose: 0, 
+          change: 0, 
+          changePercent: '0%', 
+        },
+        assetType: 'forex',
+      };
+    } else if (assetInfo.type === 'crypto' && assetInfo.apiSymbol && assetInfo.market) {
+      url = `https://www.alphavantage.co/query?function=DIGITAL_CURRENCY_DAILY&symbol=${assetInfo.apiSymbol}&market=${assetInfo.market}&apikey=${apiKey}`;
+      const response = await fetch(url);
+      if (!response.ok) return { error: `Crypto API request failed: ${response.statusText}`, assetType: 'crypto' };
+      const data = await response.json();
+      
+      if (data['Error Message']) {
+        return { error: data['Error Message'], assetType: 'crypto'};
+      }
+      if (data['Note']) {
+        console.warn('Alpha Vantage API Note (Crypto):', data['Note']);
+      }
+
+      const timeSeriesKey = 'Time Series (Digital Currency Daily)';
+      const timeSeries = data[timeSeriesKey];
+
+      if (!timeSeries) {
+        return { error: `No Crypto time series data for ${assetInfo.apiSymbol} in ${assetInfo.market}.`, assetType: 'crypto' };
+      }
+      const latestDate = Object.keys(timeSeries)[0]; 
+      if (!latestDate) return { error: 'No latest date found in crypto time series.', assetType: 'crypto' };
+      
+      const latestDayData = timeSeries[latestDate];
+      const openKey = `1a. open (${assetInfo.market})`;
+      const highKey = `2a. high (${assetInfo.market})`;
+      const lowKey = `3a. low (${assetInfo.market})`;
+      const closeKey = `4a. close (${assetInfo.market})`;
+      const volumeKey = `5. volume`; // Volume is in base crypto asset
+
+      // AlphaVantage sometimes returns keys like "1. open" instead of "1a. open (USD)"
+      const altOpenKey = `1. open`;
+      const altHighKey = `2. high`;
+      const altLowKey = `3. low`;
+      const altCloseKey = `4. close`;
+
+
+      return {
+        data: {
+          symbol: assetInfo.originalSymbol,
+          open: parseFloat(latestDayData[openKey] || latestDayData[altOpenKey]),
+          high: parseFloat(latestDayData[highKey] || latestDayData[altHighKey]),
+          low: parseFloat(latestDayData[lowKey] || latestDayData[altLowKey]),
+          price: parseFloat(latestDayData[closeKey] || latestDayData[altCloseKey]),
+          volume: parseFloat(latestDayData[volumeKey]),
+          latestTradingDay: latestDate,
+          previousClose: 0, 
+          change: 0, 
+          changePercent: '0%',
+        },
+        assetType: 'crypto',
+      };
+    } else {
+      // This case should ideally be caught by assetInfo.type === 'unknown' earlier
+      return { error: `Unsupported asset type or symbol format for fetching: ${symbol}`, assetType: assetInfo.type };
     }
 
-    return {
-      data: {
-        symbol: globalQuote['01. symbol'],
-        open: parseFloat(globalQuote['02. open']),
-        high: parseFloat(globalQuote['03. high']),
-        low: parseFloat(globalQuote['04. low']),
-        price: parseFloat(globalQuote['05. price']),
-        volume: parseInt(globalQuote['06. volume'], 10),
-        latestTradingDay: globalQuote['07. latest trading day'],
-        previousClose: parseFloat(globalQuote['08. previous close']),
-        change: parseFloat(globalQuote['09. change']),
-        changePercent: globalQuote['10. change percent'],
-      },
-    };
   } catch (error) {
-    console.error('Failed to fetch market data from Alpha Vantage:', error);
-    return { error: error instanceof Error ? error.message : 'An unexpected error occurred while fetching market data.' };
+    console.error(`Failed to fetch market data for symbol "${symbol}" (type: ${assetInfo.type}):`, error);
+    return { 
+        error: error instanceof Error ? error.message : 'An unexpected error occurred while fetching market data.',
+        assetType: assetInfo.type
+    };
   }
 }
