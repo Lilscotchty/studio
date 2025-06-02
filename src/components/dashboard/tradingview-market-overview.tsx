@@ -14,12 +14,12 @@ export function TradingViewMarketOverview() {
       script.src = 'https://s3.tradingview.com/external-embedding/embed-widget-market-overview.js';
       script.async = true;
       script.innerHTML = JSON.stringify({
-        "colorTheme": "dark",
+        "colorTheme": "dark", // Keep dark theme for text, etc.
         "dateRange": "12M",
         "showChart": true,
         "locale": "en",
         "largeChartUrl": "",
-        "isTransparent": false,
+        "isTransparent": true, // Set to true
         "showSymbolLogo": true,
         "showFloatingTooltip": false,
         "width": "100%",
