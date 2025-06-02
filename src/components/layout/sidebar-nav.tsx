@@ -9,19 +9,21 @@ import {
   SidebarMenuButton,
 } from "@/components/ui/sidebar";
 import type { LucideIcon } from "lucide-react";
-import { BarChart3, BellRing, History, Activity } from "lucide-react";
+import { BarChart3, BellRing, History, Activity, CandlestickChart } from "lucide-react";
 
 export interface NavItem {
   href: string;
   label: string;
   icon: LucideIcon;
+  fullLabel?: string; // For desktop tooltips
 }
 
 export const navItems: NavItem[] = [
-  { href: "/", label: "Overview", icon: BarChart3 }, // Shortened label for mobile
-  { href: "/alerts", label: "Alerts", icon: BellRing },
-  { href: "/performance", label: "History", icon: History }, // Shortened label
-  { href: "/live-analysis", label: "Live", icon: Activity }, // Shortened label
+  { href: "/", label: "Overview", icon: BarChart3, fullLabel: "Market Overview" },
+  { href: "/chart-analysis", label: "Analysis", icon: CandlestickChart, fullLabel: "Chart Analysis" },
+  { href: "/alerts", label: "Alerts", icon: BellRing, fullLabel: "Alerts" },
+  { href: "/performance", label: "History", icon: History, fullLabel: "Performance" },
+  { href: "/live-analysis", label: "Live", icon: Activity, fullLabel: "Live Analysis" },
 ];
 
 export function SidebarNav() {
@@ -34,11 +36,10 @@ export function SidebarNav() {
           <Link href={item.href} passHref legacyBehavior>
             <SidebarMenuButton
               isActive={pathname === item.href}
-              tooltip={{ children: item.label === "Overview" ? "Market Overview" : item.label === "History" ? "Performance" : item.label === "Live" ? "Live Analysis" : item.label, side: "right", align: "center" }}
+              tooltip={{ children: item.fullLabel || item.label, side: "right", align: "center" }}
             >
               <item.icon />
-              {/* Display full labels for sidebar, which has more space */}
-              <span>{item.label === "Overview" ? "Market Overview" : item.label === "History" ? "Performance" : item.label === "Live" ? "Live Analysis" : item.label}</span>
+              <span>{item.fullLabel || item.label}</span>
             </SidebarMenuButton>
           </Link>
         </SidebarMenuItem>

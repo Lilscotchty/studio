@@ -1,7 +1,7 @@
 
 import { MarketIndexCard, type MarketIndexProps } from "@/components/dashboard/market-index-card";
-import { ImageUploadForm } from "@/components/dashboard/image-upload-form";
-import { Globe, CandlestickChart, Activity, BarChartHorizontalBig } from "lucide-react";
+// Removed ImageUploadForm import
+import { Globe, Activity, BarChartHorizontalBig } from "lucide-react";
 
 
 const usMarketData: MarketIndexProps[] = [
@@ -103,17 +103,12 @@ export default function DashboardPage() {
           Market <span className="text-accent">Overview</span>
         </h1>
         <p className="mt-3 text-base md:text-lg text-muted-foreground max-w-xl mx-auto">
-          Get a snapshot of global market indices and analyze candlestick charts.
+          Get a snapshot of global market indices.
         </p>
       </header>
       
       <main className="space-y-10 md:space-y-16">
-        <section className="pb-8">
-           <h2 className="text-xl md:text-2xl font-semibold mb-6 text-center flex items-center justify-center">
-            <CandlestickChart className="mr-3 h-7 w-7 text-accent"/> Chart Analysis Tool
-          </h2>
-          <ImageUploadForm />
-        </section>
+        {/* Removed Chart Analysis Tool section */}
 
         <section>
           <h2 className="text-xl md:text-2xl font-semibold mb-4 flex items-center"><Activity className="mr-2 h-6 w-6 text-primary"/>US Markets</h2>
