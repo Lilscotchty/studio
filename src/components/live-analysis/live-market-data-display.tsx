@@ -4,7 +4,7 @@
 import React, { useState } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-// import { z } from "zod"; // No longer needed here if schema is imported
+import { z } from "zod"; 
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
@@ -19,13 +19,13 @@ import { fetchMarketDataFromAV, type FetchMarketDataResult } from "@/lib/actions
 import { Alert, AlertDescription as ShadcnAlertDescription, AlertTitle as ShadcnAlertTitle } from "@/components/ui/alert";
 import type { TradingSession, AlphaVantageGlobalQuote } from "@/types"; 
 
-// Use the imported schema
+// Use the imported schema and extend it for the form's needs
 const marketDataSchema = AnalyzeMarketDataInputSchema.extend({
   symbolToFetch: z.string().optional(), 
 });
 
 
-const tradingSessionsDisplay: NonNullable<TradingSession>[] = [ // Renamed for clarity from 'tradingSessions'
+const tradingSessionsDisplay: NonNullable<TradingSession>[] = [ 
   "None/Overlap",
   "Asia",
   "London Open",
@@ -67,7 +67,7 @@ export function LiveMarketDataDisplay() {
     setIsFetchingData(true);
     setFetchDataError(null);
     try {
-      const result: FetchMarketDataResult = await fetchMarketDataFromAV(symbol); // fetchMarketDataFromAV is generic name
+      const result: FetchMarketDataResult = await fetchMarketDataFromAV(symbol); 
       if (result.error) {
         setFetchDataError(result.error);
         toast({
@@ -105,8 +105,8 @@ export function LiveMarketDataDisplay() {
     setAnalysisError(null);
     setAnalysisResult(null);
     try {
+      // Exclude symbolToFetch before sending to the AI flow
       const { symbolToFetch, ...analysisInputData } = values;
-      // The schema for analysisInputData is already AnalyzeMarketDataInput
       const result = await analyzeMarketData(analysisInputData);
       setAnalysisResult(result);
       toast({
@@ -162,7 +162,7 @@ export function LiveMarketDataDisplay() {
                         </Button>
                       </div>
                       <ShadcnFormDescription>
-                        Enter Stock (e.g. AAPL), Forex (e.g. EUR/USD or EURUSD), or Crypto (e.g. BTC/USD or BTCUSD) symbol. Data pre-fills fields below.
+                         Enter Stock (e.g. AAPL), Forex (e.g. EUR/USD or EURUSD), or Crypto (e.g. BTC/USD or BTCUSD) symbol. Data from the quote service pre-fills fields below.
                       </ShadcnFormDescription>
                       <FormMessage />
                     </FormItem>
@@ -175,7 +175,7 @@ export function LiveMarketDataDisplay() {
                     <ShadcnAlertDescription>
                       {fetchDataError}
                       <br />
-                      Ensure the symbol format is correct. The quote service may have limitations. For complex assets or if issues persist, please enter data manually.
+                      Ensure the symbol format is correct (e.g., AAPL for stocks, EUR/USD or EURUSD for Forex, BTC/USD or BTCUSD for Crypto). The quote service may have limitations or require specific symbol formats. For complex assets or if issues persist, please enter data manually. Also, check your API key for the service and its rate limits.
                     </ShadcnAlertDescription>
                   </Alert>
                 )}
@@ -411,5 +411,3 @@ export function LiveMarketDataDisplay() {
     </div>
   );
 }
-
-```
