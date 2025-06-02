@@ -20,7 +20,7 @@ import { Alert, AlertDescription as ShadcnAlertDescription, AlertTitle as Shadcn
 import type { TradingSession } from "@/types";
 
 const marketDataSchema = z.object({
-  assetSymbol: z.string().min(1, "Asset symbol is required (e.g., IBM, AAPL)").max(10, "Symbol too long.").default("IBM"),
+  assetSymbol: z.string().min(1, "Asset symbol is required (e.g., NASDAQ:AAPL, IBM)").max(20, "Symbol too long.").default("NASDAQ:AAPL"),
   currentPrice: z.number({invalid_type_error: "Current price must be a number."}).positive("Current price must be positive"),
   recentHigh: z.number({invalid_type_error: "Recent high must be a number."}).positive("Recent high must be positive"),
   recentLow: z.number({invalid_type_error: "Recent low must be a number."}).positive("Recent low must be positive"),
@@ -52,12 +52,12 @@ export function LiveMarketDataDisplay() {
   const [isFetchingData, setIsFetchingData] = useState(false);
   const [fetchDataError, setFetchDataError] = useState<string | null>(null);
   const [analysisError, setAnalysisError] = useState<string | null>(null);
-  const [symbolToFetch, setSymbolToFetch] = useState("IBM");
+  const [symbolToFetch, setSymbolToFetch] = useState("NASDAQ:AAPL"); // Default to widget's symbol
 
   const form = useForm<z.infer<typeof marketDataSchema>>({
     resolver: zodResolver(marketDataSchema),
     defaultValues: {
-      assetSymbol: "IBM",
+      assetSymbol: "NASDAQ:AAPL", // Default to widget's symbol
       currentPrice: 0,
       recentHigh: 0,
       recentLow: 0,
@@ -69,19 +69,22 @@ export function LiveMarketDataDisplay() {
 
   const handleFetchData = async () => {
     if (!symbolToFetch.trim()) {
-      setFetchDataError("Please enter a stock symbol.");
+      setFetchDataError("Please enter an asset symbol.");
       return;
     }
     setIsFetchingData(true);
     setFetchDataError(null);
-    const result: FetchMarketDataResult = await fetchMarketDataFromAV(symbolToFetch.toUpperCase());
+    // Alpha Vantage typically uses symbols like 'AAPL' not 'NASDAQ:AAPL'. Need to strip prefix if present for AV.
+    const alphaVantageSymbol = symbolToFetch.includes(':') ? symbolToFetch.split(':')[1] : symbolToFetch;
+
+    const result: FetchMarketDataResult = await fetchMarketDataFromAV(alphaVantageSymbol.toUpperCase());
     setIsFetchingData(false);
 
     if (result.error) {
       setFetchDataError(result.error);
       toast({ title: "Data Fetch Failed", description: result.error, variant: "destructive" });
     } else if (result.data) {
-      form.setValue("assetSymbol", result.data.symbol);
+      form.setValue("assetSymbol", symbolToFetch); // Keep user's original input for consistency
       form.setValue("currentPrice", result.data.price);
       form.setValue("recentHigh", result.data.high); 
       form.setValue("recentLow", result.data.low);   
@@ -116,29 +119,40 @@ export function LiveMarketDataDisplay() {
       setIsAnalyzing(false);
     }
   };
+  
+  // Effect to update symbolToFetch if form's assetSymbol changes (e.g. by widget default)
+  useEffect(() => {
+    const subscription = form.watch((value, { name }) => {
+      if (name === 'assetSymbol' && value.assetSymbol) {
+        setSymbolToFetch(value.assetSymbol);
+      }
+    });
+    return () => subscription.unsubscribe();
+  }, [form]);
+
 
   return (
     <div className="space-y-8">
       <Card className="shadow-lg">
         <CardHeader>
-          <CardTitle className="font-headline text-xl flex items-center gap-2"><Activity className="text-accent" />Market Data Input</CardTitle>
-          <CardDescription>Fetch market data for a symbol, specify session, then analyze conceptually.</CardDescription>
+          <CardTitle className="font-headline text-xl flex items-center gap-2"><Activity className="text-accent" />Market Data & Observations</CardTitle>
+          <CardDescription>Fetch live data for a symbol or fill manually. Provide your observations for AI analysis.</CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
           <div className="flex items-end gap-2">
             <div className="flex-grow">
-              <Label htmlFor="symbolInput">Stock Symbol (e.g., IBM, AAPL)</Label>
+              <Label htmlFor="symbolInput">Asset Symbol (e.g., NASDAQ:AAPL, TSLA, BTC/USD)</Label>
               <Input 
                 id="symbolInput"
                 value={symbolToFetch}
                 onChange={(e) => setSymbolToFetch(e.target.value.toUpperCase())}
-                placeholder="Enter symbol"
+                placeholder="Enter symbol (e.g. AAPL)"
                 className="mt-1"
               />
             </div>
             <Button onClick={handleFetchData} disabled={isFetchingData || !symbolToFetch.trim()}>
               {isFetchingData ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Search className="mr-2 h-4 w-4" />}
-              Fetch Data
+              Fetch Quote
             </Button>
           </div>
           {fetchDataError && (
@@ -158,7 +172,7 @@ export function LiveMarketDataDisplay() {
                 render={({ field }) => (
                   <FormItem>
                     <FormLabel className="flex items-center gap-1"><Clock className="h-4 w-4"/>Perceived Trading Session</FormLabel>
-                    <Select onValueChange={field.onChange} defaultValue={field.value || "None/Overlap"}>
+                    <Select onValueChange={field.onChange} value={field.value || "None/Overlap"}>
                       <FormControl>
                         <SelectTrigger>
                           <SelectValue placeholder="Select current session (optional)" />
@@ -180,10 +194,11 @@ export function LiveMarketDataDisplay() {
                 name="assetSymbol"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Asset Symbol (Fetched/Manual)</FormLabel>
+                    <FormLabel>Asset Symbol (Confirm or Edit)</FormLabel>
                     <FormControl>
                       <Input {...field} />
                     </FormControl>
+                    <FormDescription>This symbol will be used in the AI's analysis narrative.</FormDescription>
                     <FormMessage />
                   </FormItem>
                 )}
@@ -234,10 +249,11 @@ export function LiveMarketDataDisplay() {
                 name="marketTrendDescription"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Market Trend Description</FormLabel>
+                    <FormLabel>Your Market Trend Description</FormLabel>
                     <FormControl>
                       <Textarea placeholder="e.g., 'Strong uptrend after breaking resistance, now consolidating.'" {...field} rows={3} />
                     </FormControl>
+                    <FormDescription>Describe the trend you observe in the chart.</FormDescription>
                     <FormMessage />
                   </FormItem>
                 )}
@@ -247,10 +263,11 @@ export function LiveMarketDataDisplay() {
                 name="keyLevelsDescription"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Key Levels Description (Optional)</FormLabel>
+                    <FormLabel>Your Key Levels Description (Optional)</FormLabel>
                     <FormControl>
                       <Textarea placeholder="e.g., 'Approaching daily order block at 50000. FVG present between 48000-48200.'" {...field} rows={3} />
                     </FormControl>
+                     <FormDescription>Describe any important S/R, OBs, FVGs you see.</FormDescription>
                     <FormMessage />
                   </FormItem>
                 )}
@@ -266,7 +283,7 @@ export function LiveMarketDataDisplay() {
                 ) : (
                   <>
                     <Brain className="mr-2 h-4 w-4" />
-                    Analyze Market Data
+                    Get Conceptual Analysis
                   </>
                 )}
               </Button>
@@ -286,7 +303,7 @@ export function LiveMarketDataDisplay() {
       {analysisResult && (
         <Card className="shadow-lg">
           <CardHeader>
-            <CardTitle className="font-headline text-xl">Conceptual Market Analysis</CardTitle>
+            <CardTitle className="font-headline text-xl">Conceptual Market Analysis Result</CardTitle>
             <CardDescription>Based on the provided data, descriptions, and selected session.</CardDescription>
           </CardHeader>
           <CardContent className="space-y-4">
@@ -312,4 +329,3 @@ export function LiveMarketDataDisplay() {
     </div>
   );
 }
-
