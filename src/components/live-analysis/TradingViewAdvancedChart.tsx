@@ -15,7 +15,7 @@ function TradingViewAdvancedChartWidget() {
       scriptElement.type = "text/javascript";
       scriptElement.async = true;
       scriptElement.innerHTML = JSON.stringify({
-        "width": "980",
+        "width": "100%", // Changed from "980" to "100%"
         "height": "650",
         "symbol": "NASDAQ:AAPL",
         "interval": "D",
@@ -73,9 +73,8 @@ function TradingViewAdvancedChartWidget() {
 
   return (
     <div 
-      className="tradingview-widget-container w-full" 
+      className="tradingview-widget-container w-full" // Ensured w-full, removed inline style for height
       ref={container} 
-      style={{ height: "100vh" }} 
     > 
       <div className="tradingview-widget-container__widget" style={{ height: "calc(100% - 32px)", width: "100%" }}></div>
       <div className="tradingview-widget-copyright" style={{textAlign: 'center', fontSize: '0.75rem', paddingTop: '8px'}}>
