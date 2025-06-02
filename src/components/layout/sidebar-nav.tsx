@@ -9,7 +9,7 @@ import {
   SidebarMenuButton,
 } from "@/components/ui/sidebar";
 import type { LucideIcon } from "lucide-react";
-import { BarChart3, BellRing, History, Activity, CandlestickChart } from "lucide-react";
+import { BarChart3, BellRing, History, Activity } from "lucide-react";
 
 export interface NavItem {
   href: string;
@@ -20,7 +20,6 @@ export interface NavItem {
 
 export const navItems: NavItem[] = [
   { href: "/", label: "Overview", icon: BarChart3, fullLabel: "Market Overview" },
-  { href: "/chart-analysis", label: "Analysis", icon: CandlestickChart, fullLabel: "Chart Analysis" },
   { href: "/alerts", label: "Alerts", icon: BellRing, fullLabel: "Alerts" },
   { href: "/performance", label: "History", icon: History, fullLabel: "Performance" },
   { href: "/live-analysis", label: "Live", icon: Activity, fullLabel: "Live Analysis" },

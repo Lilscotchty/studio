@@ -1,7 +1,7 @@
 
 import { MarketIndexCard, type MarketIndexProps } from "@/components/dashboard/market-index-card";
-// Removed ImageUploadForm import
-import { Globe, Activity, BarChartHorizontalBig } from "lucide-react";
+import { ImageUploadForm } from "@/components/dashboard/image-upload-form";
+import { Globe, CandlestickChart, Activity, BarChartHorizontalBig } from "lucide-react";
 
 
 const usMarketData: MarketIndexProps[] = [
@@ -97,18 +97,29 @@ const asianMarketData: MarketIndexProps[] = [
 
 export default function DashboardPage() {
   return (
-    <div className="container mx-auto py-2 md:py-8">
+    <div className="container mx-auto py-2 md:py-8"> {/* Reduced top padding for mobile */}
       <header className="mb-8 md:mb-12 text-center">
         <h1 className="text-3xl md:text-4xl font-headline font-bold tracking-tight sm:text-5xl">
           Market <span className="text-accent">Overview</span>
         </h1>
         <p className="mt-3 text-base md:text-lg text-muted-foreground max-w-xl mx-auto">
-          Get a snapshot of global market indices.
+          Get a snapshot of global market indices and analyze your charts.
         </p>
       </header>
       
       <main className="space-y-10 md:space-y-16">
-        {/* Removed Chart Analysis Tool section */}
+        <section id="chart-analysis-tool">
+          <header className="mb-6 text-center">
+            <h2 className="text-2xl md:text-3xl font-semibold flex items-center justify-center">
+              <CandlestickChart className="mr-3 h-8 w-8 text-primary"/>
+              Chart Analysis <span className="text-accent">Tool</span>
+            </h2>
+            <p className="mt-2 text-md md:text-lg text-muted-foreground max-w-lg mx-auto">
+              Upload your candlestick chart images to receive AI-powered insights.
+            </p>
+          </header>
+          <ImageUploadForm />
+        </section>
 
         <section>
           <h2 className="text-xl md:text-2xl font-semibold mb-4 flex items-center"><Activity className="mr-2 h-6 w-6 text-primary"/>US Markets</h2>
