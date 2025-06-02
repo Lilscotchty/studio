@@ -46,6 +46,9 @@ export async function analyzeMarketData(input: AnalyzeMarketDataInput): Promise<
 
 const prompt = ai.definePrompt({
   name: 'analyzeMarketDataPrompt',
+  // The input schema for the prompt remains AnalyzeMarketDataInputSchema.
+  // We will pass additional derived boolean properties (isNewYorkAMSession, isLondonOpenSession)
+  // in the actual data object to the prompt function, and Handlebars will be able to access them.
   input: {schema: AnalyzeMarketDataInputSchema},
   output: {schema: AnalyzeMarketDataOutputSchema},
   prompt: `You are an expert trading analyst specializing in Inner Circle Trader (ICT) concepts, including session-based setups like the "Silver Bullet".
@@ -64,13 +67,13 @@ Based on this information and core ICT principles (Liquidity Pools, Market Struc
     {{/if}}
 3.  Suggest what an ICT trader might be looking for NEXT as a conceptual focus.
     {{#if activeTradingSession}}
-      {{#if (eq activeTradingSession "New York AM")}}
+      {{#if isNewYorkAMSession}}
       - Given the New York AM session context, an ICT trader might be particularly watchful for a "Silver Bullet" setup. This typically involves:
         1. A clear sweep of liquidity (e.g., taking out an early session high/low or a previous day's high/low).
         2. Followed by a strong displacement in the opposite direction, creating a Fair Value Gap (FVG).
         3. An entry is often considered on a retracement into this FVG, targeting liquidity in the direction of the displacement.
         Conceptually, monitor for such a sequence if broader HTF bias aligns. What specific liquidity level might be targeted for a sweep in this session? What direction would displacement need to be to align with HTF bias?
-      {{else if (eq activeTradingSession "London Open")}}
+      {{else if isLondonOpenSession}}
       - During the London Open, traders often look for initial manipulation (Judas Swing) that takes liquidity from the Asian session range, followed by a reversal and expansion. If a "Silver Bullet" type setup is sought:
         1. Look for a sweep of Asian session high/low or early London liquidity.
         2. A subsequent displacement creating an FVG.
@@ -95,7 +98,14 @@ const analyzeMarketDataFlow = ai.defineFlow(
     outputSchema: AnalyzeMarketDataOutputSchema,
   },
   async input => {
-    const {output} = await prompt(input);
+    const isNewYorkAMSession = input.activeTradingSession === "New York AM";
+    const isLondonOpenSession = input.activeTradingSession === "London Open";
+
+    const {output} = await prompt({
+      ...input,
+      isNewYorkAMSession,
+      isLondonOpenSession,
+    });
     return output!;
   }
 );
