@@ -12,15 +12,14 @@ import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription, CardFooter } from "@/components/ui/card";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage, FormDescription } from "@/components/ui/form";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { AlertCircle, CheckCircle, Loader2, Activity, Brain, Search, Clock } from "lucide-react";
+import { AlertCircle, Loader2, Activity, Brain, Clock } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { analyzeMarketData, type AnalyzeMarketDataInput, type AnalyzeMarketDataOutput } from "@/ai/flows/analyze-market-data-flow";
-import { fetchMarketDataFromAV, type FetchMarketDataResult } from "@/lib/actions";
 import { Alert, AlertDescription as ShadcnAlertDescription, AlertTitle as ShadcnAlertTitle } from "@/components/ui/alert";
 import type { TradingSession } from "@/types";
 
 const marketDataSchema = z.object({
-  assetSymbol: z.string().min(1, "Asset symbol is required (e.g., NASDAQ:AAPL, IBM)").max(20, "Symbol too long.").default("NASDAQ:AAPL"),
+  assetSymbol: z.string().min(1, "Asset symbol is required (e.g., NASDAQ:AAPL, BTC/USD)").max(20, "Symbol too long.").default("NASDAQ:AAPL"),
   currentPrice: z.number({invalid_type_error: "Current price must be a number."}).positive("Current price must be positive"),
   recentHigh: z.number({invalid_type_error: "Recent high must be a number."}).positive("Recent high must be positive"),
   recentLow: z.number({invalid_type_error: "Recent low must be a number."}).positive("Recent low must be positive"),
@@ -49,15 +48,12 @@ export function LiveMarketDataDisplay() {
   const { toast } = useToast();
   const [analysisResult, setAnalysisResult] = useState<AnalyzeMarketDataOutput | null>(null);
   const [isAnalyzing, setIsAnalyzing] = useState(false);
-  const [isFetchingData, setIsFetchingData] = useState(false);
-  const [fetchDataError, setFetchDataError] = useState<string | null>(null);
   const [analysisError, setAnalysisError] = useState<string | null>(null);
-  const [symbolToFetch, setSymbolToFetch] = useState("NASDAQ:AAPL"); // Default to widget's symbol
 
   const form = useForm<z.infer<typeof marketDataSchema>>({
     resolver: zodResolver(marketDataSchema),
     defaultValues: {
-      assetSymbol: "NASDAQ:AAPL", // Default to widget's symbol
+      assetSymbol: "NASDAQ:AAPL", // Default to widget's symbol, user should confirm/edit
       currentPrice: 0,
       recentHigh: 0,
       recentLow: 0,
@@ -66,31 +62,6 @@ export function LiveMarketDataDisplay() {
       activeTradingSession: "None/Overlap",
     },
   });
-
-  const handleFetchData = async () => {
-    if (!symbolToFetch.trim()) {
-      setFetchDataError("Please enter an asset symbol.");
-      return;
-    }
-    setIsFetchingData(true);
-    setFetchDataError(null);
-    // Alpha Vantage typically uses symbols like 'AAPL' not 'NASDAQ:AAPL'. Need to strip prefix if present for AV.
-    const alphaVantageSymbol = symbolToFetch.includes(':') ? symbolToFetch.split(':')[1] : symbolToFetch;
-
-    const result: FetchMarketDataResult = await fetchMarketDataFromAV(alphaVantageSymbol.toUpperCase());
-    setIsFetchingData(false);
-
-    if (result.error) {
-      setFetchDataError(result.error);
-      toast({ title: "Data Fetch Failed", description: result.error, variant: "destructive" });
-    } else if (result.data) {
-      form.setValue("assetSymbol", symbolToFetch); // Keep user's original input for consistency
-      form.setValue("currentPrice", result.data.price);
-      form.setValue("recentHigh", result.data.high); 
-      form.setValue("recentLow", result.data.low);   
-      toast({ title: "Data Fetched", description: `Market data for ${result.data.symbol} updated.` });
-    }
-  };
 
   const onSubmitAnalysis = async (values: z.infer<typeof marketDataSchema>) => {
     setIsAnalyzing(true);
@@ -119,63 +90,17 @@ export function LiveMarketDataDisplay() {
       setIsAnalyzing(false);
     }
   };
-  
-  // Effect to update symbolToFetch if form's assetSymbol changes (e.g. by widget default)
-  useEffect(() => {
-    const subscription = form.watch((value, { name }) => {
-      if (name === 'assetSymbol' && value.assetSymbol) {
-        setSymbolToFetch(value.assetSymbol);
-      }
-    });
-    return () => subscription.unsubscribe();
-  }, [form]);
-
 
   return (
     <div className="space-y-8">
       <Card className="shadow-lg">
         <CardHeader>
           <CardTitle className="font-headline text-xl flex items-center gap-2"><Activity className="text-accent" />Market Data & Observations</CardTitle>
-          <CardDescription>Fetch live data for a symbol or fill manually. Provide your observations for AI analysis.</CardDescription>
+          <CardDescription>Observe the TradingView chart above, then manually fill in the data and your observations below for the AI to provide a conceptual ICT analysis.</CardDescription>
         </CardHeader>
-        <CardContent className="space-y-4">
-          <div className="flex items-end gap-2">
-            <div className="flex-grow">
-              <Label htmlFor="symbolInput">Asset Symbol (e.g., NASDAQ:AAPL, TSLA, BTC/USD)</Label>
-              <Input 
-                id="symbolInput"
-                value={symbolToFetch}
-                onChange={(e) => setSymbolToFetch(e.target.value.toUpperCase())}
-                placeholder="Enter symbol (e.g. AAPL)"
-                className="mt-1"
-              />
-            </div>
-            <Button onClick={handleFetchData} disabled={isFetchingData || !symbolToFetch.trim()}>
-              {isFetchingData ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Search className="mr-2 h-4 w-4" />}
-              Fetch Quote
-            </Button>
-          </div>
-          {fetchDataError && (
-            <Alert variant="destructive">
-              <AlertCircle className="h-4 w-4" />
-              <ShadcnAlertTitle>Data Fetch Error</ShadcnAlertTitle>
-              <ShadcnAlertDescription>
-                {fetchDataError}
-                {(fetchDataError.includes("No data returned") || fetchDataError.includes("symbol not found")) && 
-                  !fetchDataError.includes("API key") && (
-                  <p className="mt-1 text-xs text-muted-foreground">
-                    Tip: Fetching quote works best for stock/ETF symbols (e.g., AAPL, MSFT). 
-                    For other asset types like Forex or Crypto, manual data entry might be more reliable as data source coverage varies.
-                    Also, ensure your Alpha Vantage API key in the .env file is active and has not exceeded its rate limit.
-                  </p>
-                )}
-              </ShadcnAlertDescription>
-            </Alert>
-          )}
-        </CardContent>
         <Form {...form}>
           <form onSubmit={form.handleSubmit(onSubmitAnalysis)}>
-            <CardContent className="space-y-6 pt-0">
+            <CardContent className="space-y-6 pt-4">
                <FormField
                 control={form.control}
                 name="activeTradingSession"
@@ -204,11 +129,11 @@ export function LiveMarketDataDisplay() {
                 name="assetSymbol"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Asset Symbol (Confirm or Edit)</FormLabel>
+                    <FormLabel>Asset Symbol (e.g., NASDAQ:AAPL, BTC/USD)</FormLabel>
                     <FormControl>
-                      <Input {...field} />
+                      <Input {...field} placeholder="Enter asset symbol observed in chart" />
                     </FormControl>
-                    <FormDescription>This symbol will be used in the AI's analysis narrative.</FormDescription>
+                    <FormDescription>Enter the symbol you are analyzing from the chart above. This provides context for the AI.</FormDescription>
                     <FormMessage />
                   </FormItem>
                 )}
