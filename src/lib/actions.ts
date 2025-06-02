@@ -142,7 +142,7 @@ export interface FetchMarketDataResult {
 export async function fetchMarketDataFromAV(symbol: string): Promise<FetchMarketDataResult> {
   const apiKey = process.env.ALPHAVANTAGE_API_KEY;
   if (!apiKey) {
-    return { error: 'API key for Alpha Vantage is not configured.' };
+    return { error: 'API key for the quote service is not configured.' };
   }
 
   const assetInfo = determineAssetType(symbol);
@@ -162,10 +162,10 @@ export async function fetchMarketDataFromAV(symbol: string): Promise<FetchMarket
       const data = await response.json();
       
       if (data['Error Message']) {
-        return { error: `Alpha Vantage API error (Stock): ${data['Error Message']}`, assetType: 'stock' };
+        return { error: `Quote service API error (Stock): ${data['Error Message']}`, assetType: 'stock' };
       }
       if (data['Note']) {
-          console.warn('Alpha Vantage API Note (Stock):', data['Note']);
+          console.warn('Quote service API Note (Stock):', data['Note']);
       }
       
       const globalQuote = data['Global Quote'];
@@ -199,7 +199,7 @@ export async function fetchMarketDataFromAV(symbol: string): Promise<FetchMarket
         return { error: data['Error Message'] || `No Forex data returned for ${assetInfo.fromCurrency}/${assetInfo.toCurrency}.`, assetType: 'forex' };
       }
       if (data['Note']) {
-        console.warn('Alpha Vantage API Note (Forex):', data['Note']);
+        console.warn('Quote service API Note (Forex):', data['Note']);
       }
 
       const rate = parseFloat(exchangeRateData['5. Exchange Rate']);
@@ -230,7 +230,7 @@ export async function fetchMarketDataFromAV(symbol: string): Promise<FetchMarket
         return { error: data['Error Message'], assetType: 'crypto'};
       }
       if (data['Note']) {
-        console.warn('Alpha Vantage API Note (Crypto):', data['Note']);
+        console.warn('Quote service API Note (Crypto):', data['Note']);
       }
 
       const timeSeriesKey = 'Time Series (Digital Currency Daily)';
@@ -249,7 +249,7 @@ export async function fetchMarketDataFromAV(symbol: string): Promise<FetchMarket
       const closeKey = `4a. close (${assetInfo.market})`;
       const volumeKey = `5. volume`; // Volume is in base crypto asset
 
-      // AlphaVantage sometimes returns keys like "1. open" instead of "1a. open (USD)"
+      // Quote service sometimes returns keys like "1. open" instead of "1a. open (USD)"
       const altOpenKey = `1. open`;
       const altHighKey = `2. high`;
       const altLowKey = `3. low`;

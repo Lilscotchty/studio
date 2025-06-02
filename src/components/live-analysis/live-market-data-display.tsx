@@ -178,7 +178,7 @@ export function LiveMarketDataDisplay() {
                         </Button>
                       </div>
                       <FormDescription>
-                        Enter a Stock (e.g. AAPL), Forex (e.g. EURUSD or EUR/USD), or Crypto (e.g. BTCUSD or BTC/USD) symbol to pre-fill price data from Alpha Vantage.
+                        Enter a Stock (e.g. AAPL), Forex (e.g. EURUSD or EUR/USD), or Crypto (e.g. BTCUSD or BTC/USD) symbol to pre-fill price data. This data is used to populate the fields below.
                       </FormDescription>
                       <FormMessage />
                     </FormItem>
@@ -191,7 +191,7 @@ export function LiveMarketDataDisplay() {
                     <ShadcnAlertDescription>
                       {fetchDataError}
                       <br />
-                      Ensure the symbol format is correct for the asset type. Alpha Vantage API key must be configured and within rate limits. For complex assets or if issues persist, please enter data manually.
+                      Ensure the symbol format is correct for the asset type. The quote service may have limitations or require specific symbol formats. For complex assets or if issues persist, please enter data manually.
                     </ShadcnAlertDescription>
                   </Alert>
                 )}
@@ -361,4 +361,3 @@ export function LiveMarketDataDisplay() {
     </div>
   );
 }
-
