@@ -71,7 +71,7 @@ function TradingViewAdvancedChartWidget() {
   }, []);
 
   return (
-    <div className="tradingview-widget-container w-full h-[550px]" ref={container}> {/* Applied Tailwind classes for sizing */}
+    <div className="tradingview-widget-container w-full h-[650px]" ref={container}> {/* Applied Tailwind classes for sizing */}
       <div className="tradingview-widget-container__widget" style={{ height: "calc(100% - 32px)", width: "100%" }}></div>
       <div className="tradingview-widget-copyright" style={{textAlign: 'center', fontSize: '0.75rem', paddingTop: '8px'}}>
         <a href="https://www.tradingview.com/" rel="noopener nofollow" target="_blank">
