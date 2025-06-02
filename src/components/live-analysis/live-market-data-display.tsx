@@ -1,8 +1,8 @@
 
 "use client";
 
-import React, { useState, useEffect } from "react";
-import { useForm, Controller } from "react-hook-form";
+import React, { useState } from "react";
+import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { Button } from "@/components/ui/button";
@@ -12,13 +12,15 @@ import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription, CardFooter } from "@/components/ui/card";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage, FormDescription } from "@/components/ui/form";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { AlertCircle, Loader2, Activity, Brain, Clock } from "lucide-react";
+import { AlertCircle, Loader2, Activity, Brain, Clock, Search } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { analyzeMarketData, type AnalyzeMarketDataInput, type AnalyzeMarketDataOutput } from "@/ai/flows/analyze-market-data-flow";
+import { fetchMarketDataFromAV, type FetchMarketDataResult } from "@/lib/actions"; // Re-added
 import { Alert, AlertDescription as ShadcnAlertDescription, AlertTitle as ShadcnAlertTitle } from "@/components/ui/alert";
-import type { TradingSession } from "@/types";
+import type { TradingSession, AlphaVantageGlobalQuote } from "@/types"; // Re-added AlphaVantageGlobalQuote
 
 const marketDataSchema = z.object({
+  symbolToFetch: z.string().optional(), // Added for the fetch input
   assetSymbol: z.string().min(1, "Asset symbol is required (e.g., NASDAQ:AAPL, BTC/USD)").max(20, "Symbol too long.").default("NASDAQ:AAPL"),
   currentPrice: z.number({invalid_type_error: "Current price must be a number."}).positive("Current price must be positive"),
   recentHigh: z.number({invalid_type_error: "Recent high must be a number."}).positive("Recent high must be positive"),
@@ -50,10 +52,16 @@ export function LiveMarketDataDisplay() {
   const [isAnalyzing, setIsAnalyzing] = useState(false);
   const [analysisError, setAnalysisError] = useState<string | null>(null);
 
+  // State for Alpha Vantage fetching
+  const [isFetchingData, setIsFetchingData] = useState(false);
+  const [fetchDataError, setFetchDataError] = useState<string | null>(null);
+
+
   const form = useForm<z.infer<typeof marketDataSchema>>({
     resolver: zodResolver(marketDataSchema),
     defaultValues: {
-      assetSymbol: "NASDAQ:AAPL", // Default to widget's symbol, user should confirm/edit
+      symbolToFetch: "AAPL", // Default symbol for fetching
+      assetSymbol: "NASDAQ:AAPL",
       currentPrice: 0,
       recentHigh: 0,
       recentLow: 0,
@@ -63,15 +71,60 @@ export function LiveMarketDataDisplay() {
     },
   });
 
+  const handleFetchData = async () => {
+    const symbol = form.getValues("symbolToFetch");
+    if (!symbol) {
+      setFetchDataError("Please enter a symbol to fetch.");
+      return;
+    }
+    setIsFetchingData(true);
+    setFetchDataError(null);
+    try {
+      const result: FetchMarketDataResult = await fetchMarketDataFromAV(symbol);
+      if (result.error) {
+        setFetchDataError(result.error);
+        toast({
+          title: "Fetch Failed",
+          description: result.error,
+          variant: "destructive",
+        });
+      } else if (result.data) {
+        const fetchedData = result.data;
+        form.setValue("assetSymbol", fetchedData.symbol);
+        form.setValue("currentPrice", fetchedData.price);
+        form.setValue("recentHigh", fetchedData.high);
+        form.setValue("recentLow", fetchedData.low);
+        toast({
+          title: "Data Fetched",
+          description: `Successfully fetched quote for ${fetchedData.symbol}.`,
+        });
+      }
+    } catch (err) {
+      const errorMessage = err instanceof Error ? err.message : "An unknown error occurred during fetch.";
+      setFetchDataError(errorMessage);
+      toast({
+        title: "Fetch Error",
+        description: errorMessage,
+        variant: "destructive",
+      });
+    } finally {
+      setIsFetchingData(false);
+    }
+  };
+
+
   const onSubmitAnalysis = async (values: z.infer<typeof marketDataSchema>) => {
     setIsAnalyzing(true);
     setAnalysisError(null);
     setAnalysisResult(null);
     try {
-      const inputForAI: AnalyzeMarketDataInput = { ...values };
+      // Exclude symbolToFetch from the data sent for AI analysis
+      const { symbolToFetch, ...analysisInputData } = values;
+      const inputForAI: AnalyzeMarketDataInput = { ...analysisInputData };
       if (values.activeTradingSession === "None/Overlap") {
         inputForAI.activeTradingSession = undefined;
       }
+
       const result = await analyzeMarketData(inputForAI);
       setAnalysisResult(result);
       toast({
@@ -96,11 +149,58 @@ export function LiveMarketDataDisplay() {
       <Card className="shadow-lg">
         <CardHeader>
           <CardTitle className="font-headline text-xl flex items-center gap-2"><Activity className="text-accent" />Market Data & Observations</CardTitle>
-          <CardDescription>Observe the TradingView chart above, then manually fill in the data and your observations below for the AI to provide a conceptual ICT analysis.</CardDescription>
+          <CardDescription>
+            Observe the TradingView chart. You can optionally fetch a quote for common stocks/ETFs using the field below, or manually fill in all data for your AI-powered conceptual ICT analysis.
+          </CardDescription>
         </CardHeader>
         <Form {...form}>
           <form onSubmit={form.handleSubmit(onSubmitAnalysis)}>
             <CardContent className="space-y-6 pt-4">
+
+              {/* Fetch Quote Section */}
+              <div className="border p-4 rounded-md space-y-4 bg-muted/30">
+                <FormField
+                  control={form.control}
+                  name="symbolToFetch"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel className="flex items-center gap-1"><Search className="h-4 w-4" /> Symbol for Quote Fetch</FormLabel>
+                      <div className="flex gap-2 items-center">
+                        <FormControl>
+                          <Input {...field} placeholder="e.g., AAPL, MSFT" />
+                        </FormControl>
+                        <Button type="button" onClick={handleFetchData} disabled={isFetchingData} variant="outline" className="shrink-0">
+                          {isFetchingData ? (
+                            <>
+                              <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                              Fetching...
+                            </>
+                          ) : (
+                            "Fetch Quote"
+                          )}
+                        </Button>
+                      </div>
+                      <FormDescription>
+                        Enter a stock/ETF symbol to pre-fill price data from Alpha Vantage.
+                      </FormDescription>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+                {fetchDataError && (
+                  <Alert variant="destructive">
+                    <AlertCircle className="h-4 w-4" />
+                    <ShadcnAlertTitle>Data Fetch Error</ShadcnAlertTitle>
+                    <ShadcnAlertDescription>
+                      {fetchDataError}
+                      <br />
+                      Fetching works best for stock/ETF symbols. For other assets (Forex, Crypto), please enter data manually. Ensure your Alpha Vantage API key is configured and has not exceeded its rate limit.
+                    </ShadcnAlertDescription>
+                  </Alert>
+                )}
+              </div>
+
+
                <FormField
                 control={form.control}
                 name="activeTradingSession"
@@ -129,11 +229,11 @@ export function LiveMarketDataDisplay() {
                 name="assetSymbol"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Asset Symbol (e.g., NASDAQ:AAPL, BTC/USD)</FormLabel>
+                    <FormLabel>Asset Symbol for Analysis (e.g., NASDAQ:AAPL, BTC/USD)</FormLabel>
                     <FormControl>
                       <Input {...field} placeholder="Enter asset symbol observed in chart" />
                     </FormControl>
-                    <FormDescription>Enter the symbol you are analyzing from the chart above. This provides context for the AI.</FormDescription>
+                    <FormDescription>This symbol provides context for the AI. It can be auto-filled by "Fetch Quote" or entered manually.</FormDescription>
                     <FormMessage />
                   </FormItem>
                 )}
@@ -264,4 +364,3 @@ export function LiveMarketDataDisplay() {
     </div>
   );
 }
-
