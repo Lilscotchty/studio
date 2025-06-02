@@ -22,7 +22,7 @@ function TradingViewAdvancedChartWidget() {
         "theme": "dark",
         "style": "1",
         "locale": "en",
-        "backgroundColor": "rgba(16, 19, 24, 1)", // Updated to match app background (hsl(220, 20%, 7%))
+        "backgroundColor": "rgba(16, 19, 24, 1)", 
         "withdateranges": true,
         "hide_side_toolbar": false,
         "allow_symbol_change": true,
@@ -34,11 +34,11 @@ function TradingViewAdvancedChartWidget() {
 
     return () => {
       if (scriptAdded.current && container.current) {
-        // Attempt to remove the script
+        
         if (scriptElement && scriptElement.parentNode) {
           scriptElement.parentNode.removeChild(scriptElement);
         } else {
-          // Fallback if scriptElement reference is lost (e.g. fast refresh)
+          
           const scripts = container.current.getElementsByTagName('script');
           for (let i = 0; i < scripts.length; i++) {
             if (scripts[i].src.includes('embed-widget-advanced-chart.js')) {
@@ -48,17 +48,17 @@ function TradingViewAdvancedChartWidget() {
           }
         }
         
-        // Clear the widget content
+        
         const widgetInnerContainer = container.current.querySelector('.tradingview-widget-container__widget');
         if (widgetInnerContainer) {
           widgetInnerContainer.innerHTML = '';
         }
-        // For other direct children TradingView might add to container.current
+        
         while (container.current.firstChild && container.current.firstChild !== widgetInnerContainer) {
-            if(container.current.firstChild.nodeName !== "SCRIPT"){ // Don't remove script again if already handled
+            if(container.current.firstChild.nodeName !== "SCRIPT"){ 
                  container.current.removeChild(container.current.firstChild);
             } else if (container.current.firstChild.nodeName === "SCRIPT" && !scriptElement) {
-                // if scriptElement ref was lost and script is still there
+                
                  container.current.removeChild(container.current.firstChild);
             } else {
                 break; 
@@ -71,7 +71,11 @@ function TradingViewAdvancedChartWidget() {
   }, []);
 
   return (
-    <div className="tradingview-widget-container w-full h-screen" ref={container}> {/* Applied Tailwind classes for sizing */}
+    <div 
+      className="tradingview-widget-container w-full" 
+      ref={container} 
+      style={{ height: "100vh" }} // Applied height using inline style
+    > 
       <div className="tradingview-widget-container__widget" style={{ height: "calc(100% - 32px)", width: "100%" }}></div>
       <div className="tradingview-widget-copyright" style={{textAlign: 'center', fontSize: '0.75rem', paddingTop: '8px'}}>
         <a href="https://www.tradingview.com/" rel="noopener nofollow" target="_blank">
