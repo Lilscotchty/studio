@@ -38,7 +38,6 @@ export const AnalyzeMarketDataOutputSchema = z.object({
   suggestedFocusICT: z.string().describe("What an ICT trader might conceptually be looking for next, e.g., 'Look for CHoCH below recentLow if HTF bias is bearish', 'Monitor for SMR at key resistance if price sweeps recentHigh before continuing lower.'"),
   confidence: z.enum(["Low", "Medium", "High"]).describe("Confidence in this conceptual analysis."),
   
-  // New fields for non-ICT user guidance
   suggestedActionDirection: z.enum(["Buy", "Sell", "Consider Holding/Neutral", "Avoid/Wait"]).describe("A general suggested action direction based on the analysis. This is conceptual and not financial advice."),
   potentialEntryZone: z.string().optional().describe("A conceptual price range or level for potential entry, e.g., 'around 49500-49800', or 'on a pullback to the support near 1.2345'. This is conceptual and not financial advice."),
   potentialTakeProfitZone: z.string().optional().describe("A conceptual price range for potential take profit, e.g., 'targeting the recent high around 52000', or 'towards the next resistance at 1.2500'. This is conceptual and not financial advice."),
@@ -54,7 +53,7 @@ export async function analyzeMarketData(input: AnalyzeMarketDataInput): Promise<
 
 const prompt = ai.definePrompt({
   name: 'analyzeMarketDataPrompt',
-  input: {schema: AnalyzeMarketDataInputSchema}, // Will pass derived booleans in the data object
+  input: {schema: AnalyzeMarketDataInputSchema}, 
   output: {schema: AnalyzeMarketDataOutputSchema},
   prompt: `You are an expert trading analyst. Your goal is to provide two types of analysis based on the provided market data for asset {{{assetSymbol}}}:
 1.  **ICT-Specific Analysis**: For traders familiar with Inner Circle Trader (ICT) concepts.
@@ -107,7 +106,6 @@ const analyzeMarketDataFlow = ai.defineFlow(
     const isNewYorkAMSession = input.activeTradingSession === "New York AM";
     const isLondonOpenSession = input.activeTradingSession === "London Open";
 
-    // Ensure activeTradingSession is not "None/Overlap" when passing to prompt if it's the default
     const effectiveInput = {
       ...input,
       activeTradingSession: input.activeTradingSession === "None/Overlap" ? undefined : input.activeTradingSession,
@@ -119,13 +117,3 @@ const analyzeMarketDataFlow = ai.defineFlow(
     return output!;
   }
 );
-
-// Ensure types are exported if they are used elsewhere (they are, in src/types/index.ts)
-// export type { AnalyzeMarketDataInput, AnalyzeMarketDataOutput };
-// The above export is not needed as schema types are already exported.
-// However, if these schemas were not exported directly, you would export the inferred types.
-// For example: export type AnalyzeMarketDataInput = z.infer<typeof AnalyzeMarketDataInputSchema>;
-// export type AnalyzeMarketDataOutput = z.infer<typeof AnalyzeMarketDataOutputSchema>;
-// But since the schema objects themselves are exported, this is fine.
-
-```
