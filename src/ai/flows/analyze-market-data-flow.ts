@@ -21,7 +21,7 @@ const TradingSessionEnum = z.enum([
   "New York PM"
 ]).optional();
 
-export const AnalyzeMarketDataInputSchema = z.object({
+const AnalyzeMarketDataInputSchema = z.object({
   assetSymbol: z.string().describe("The trading symbol, e.g., BTC/USD"),
   currentPrice: z.number().describe("The current price of the asset."),
   recentHigh: z.number().describe("The most recent significant high price."),
@@ -32,7 +32,7 @@ export const AnalyzeMarketDataInputSchema = z.object({
 });
 export type AnalyzeMarketDataInput = z.infer<typeof AnalyzeMarketDataInputSchema>;
 
-export const AnalyzeMarketDataOutputSchema = z.object({
+const AnalyzeMarketDataOutputSchema = z.object({
   potentialBias: z.enum(["Bullish", "Bearish", "Neutral"]).describe("The AI's inferred short-term conceptual bias based on the provided context and ICT principles."),
   keyObservations: z.array(z.string()).describe("List of key conceptual observations based on ICT principles, e.g., 'Price approaching potential sell-side liquidity below recentLow', 'Possible manipulation above recentHigh if overall trend is down.'"),
   suggestedFocusICT: z.string().describe("What an ICT trader might conceptually be looking for next, e.g., 'Look for CHoCH below recentLow if HTF bias is bearish', 'Monitor for SMR at key resistance if price sweeps recentHigh before continuing lower.'"),
@@ -117,3 +117,4 @@ const analyzeMarketDataFlow = ai.defineFlow(
     return output!;
   }
 );
+
