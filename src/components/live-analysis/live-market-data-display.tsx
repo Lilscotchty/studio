@@ -159,7 +159,17 @@ export function LiveMarketDataDisplay() {
             <Alert variant="destructive">
               <AlertCircle className="h-4 w-4" />
               <ShadcnAlertTitle>Data Fetch Error</ShadcnAlertTitle>
-              <ShadcnAlertDescription>{fetchDataError}</ShadcnAlertDescription>
+              <ShadcnAlertDescription>
+                {fetchDataError}
+                {(fetchDataError.includes("No data returned") || fetchDataError.includes("symbol not found")) && 
+                  !fetchDataError.includes("API key") && (
+                  <p className="mt-1 text-xs text-muted-foreground">
+                    Tip: Fetching quote works best for stock/ETF symbols (e.g., AAPL, MSFT). 
+                    For other asset types like Forex or Crypto, manual data entry might be more reliable as data source coverage varies.
+                    Also, ensure your Alpha Vantage API key in the .env file is active and has not exceeded its rate limit.
+                  </p>
+                )}
+              </ShadcnAlertDescription>
             </Alert>
           )}
         </CardContent>
@@ -329,3 +339,4 @@ export function LiveMarketDataDisplay() {
     </div>
   );
 }
+
