@@ -73,29 +73,29 @@ Market Data:
 - User's Trend Description: "{{{marketTrendDescription}}}"
 - User's Key Levels Description: "{{{keyLevelsDescription}}}"
 {{#if activeTradingSession}}- User's Perceived Trading Session: **{{{activeTradingSession}}}**.{{/if}}
-{{#if selectedTimeframe}}- User's Selected Chart Timeframe: **{{{selectedTimeframe}}}**. This is the primary timeframe for analysis.{{/if}}
+{{#if selectedTimeframe}}- User's Selected Chart Timeframe: **{{selectedTimeframe}}**. This is the primary timeframe for analysis.{{/if}}
 
 **Part 1: ICT-Specific Analysis**
-Based on core ICT principles (Liquidity Pools, Market Structure shifts (CHoCH/BOS), Order Blocks, Fair Value Gaps (FVG), Smart Money Reversals (SMR), MMXM, Power of 3 - AMD), {{#if selectedTimeframe}}considering the user's selected chart timeframe of **{{{selectedTimeframe}}}** as the primary focus{{else}}for general intraday to short-term analysis{{/if}}:
-- Determine a conceptual short-term BIAS (Bullish, Bearish, Neutral) relevant to the {{#if selectedTimeframe}}'{{{selectedTimeframe}}}' timeframe{{else}}prevailing short-term conditions{{/if}}.
-- Provide 2-3 KEY OBSERVATIONS from an ICT perspective relevant to the {{#if selectedTimeframe}}'{{{selectedTimeframe}}}' timeframe{{else}}current market structure{{/if}}.
+Based on core ICT principles (Liquidity Pools, Market Structure shifts (CHoCH/BOS), Order Blocks, Fair Value Gaps (FVG), Smart Money Reversals (SMR), MMXM, Power of 3 - AMD), {{#if selectedTimeframe}}considering the user's selected chart timeframe of **{{selectedTimeframe}}** as the primary focus{{else}}for general intraday to short-term analysis{{/if}}:
+- Determine a conceptual short-term BIAS (Bullish, Bearish, Neutral) relevant to the {{#if selectedTimeframe}}'{{selectedTimeframe}}' timeframe{{else}}prevailing short-term conditions{{/if}}.
+- Provide 2-3 KEY OBSERVATIONS from an ICT perspective relevant to the {{#if selectedTimeframe}}'{{selectedTimeframe}}' timeframe{{else}}current market structure{{/if}}.
   - Consider potential liquidity targets visible or likely influencing this timeframe.
   - How does current price relate to described key zones and recent highs/lows on this timeframe?
-  {{#if activeTradingSession}}- If the session is 'London Open' or 'New York AM', briefly mention common liquidity phenomena (e.g., Judas swing) relevant to the {{#if selectedTimeframe}}'{{{selectedTimeframe}}}' timeframe{{else}}session context{{/if}} and session.{{/if}}
-  {{#if selectedTimeframe}}- Conceptually align your observations with a plausible Higher Timeframe (HTF) narrative (e.g., if {{{selectedTimeframe}}} is 15min, is price reacting at a 1hr HTF Point of Interest (POI)? Is the HTF trend supporting or opposing moves on the {{{selectedTimeframe}}}?). If no strong HTF context is obvious from the data, you can state that.{{/if}}
-- Suggest what an ICT trader might be looking for NEXT as a conceptual focus (suggestedFocusICT), especially on the {{#if selectedTimeframe}}'{{{selectedTimeframe}}}' timeframe{{else}}appropriate short-term timeframes{{/if}} or a Lower Timeframe (LTF) for entry/confirmation.
-  {{#if selectedTimeframe}}- For LTF considerations, mention how one might refine entries based on {{{selectedTimeframe}}} structures (e.g., "if a bullish OB forms on {{{selectedTimeframe}}}, look for LTF confirmation like a 1min/5min CHoCH + FVG for entry").{{/if}}
-  {{#if isNewYorkAMSession}}- Given New York AM, mention conceptual "Silver Bullet" considerations potentially aligning with the {{#if selectedTimeframe}}'{{{selectedTimeframe}}}' timeframe{{else}}current market phase{{/if}}: liquidity sweep, displacement creating FVG, retracement to FVG.{{/if}}
-  {{#if isLondonOpenSession}}- Given London Open, mention conceptual Judas Swing from Asian range, then reversal/expansion, potential FVG entry, especially as it relates to the {{#if selectedTimeframe}}'{{{selectedTimeframe}}}' timeframe's structures{{else}}session's typical price action{{/if}}.{{/if}}
+  {{#if activeTradingSession}}- If the session is 'London Open' or 'New York AM', briefly mention common liquidity phenomena (e.g., Judas swing) relevant to the {{#if selectedTimeframe}}'{{selectedTimeframe}}' timeframe{{else}}session context{{/if}} and session.{{/if}}
+  {{#if selectedTimeframe}}- Conceptually align your observations with a plausible Higher Timeframe (HTF) narrative (e.g., if {{selectedTimeframe}} is 15min, is price reacting at a 1hr HTF Point of Interest (POI)? Is the HTF trend supporting or opposing moves on the {{selectedTimeframe}}?). If no strong HTF context is obvious from the data, you can state that.{{/if}}
+- Suggest what an ICT trader might be looking for NEXT as a conceptual focus (suggestedFocusICT), especially on the {{#if selectedTimeframe}}'{{selectedTimeframe}}' timeframe{{else}}appropriate short-term timeframes{{/if}} or a Lower Timeframe (LTF) for entry/confirmation.
+  {{#if selectedTimeframe}}- For LTF considerations, mention how one might refine entries based on {{selectedTimeframe}} structures (e.g., "if a bullish OB forms on {{selectedTimeframe}}, look for LTF confirmation like a 1min/5min CHoCH + FVG for entry").{{/if}}
+  {{#if isNewYorkAMSession}}- Given New York AM, mention conceptual "Silver Bullet" considerations potentially aligning with the {{#if selectedTimeframe}}'{{selectedTimeframe}}' timeframe{{else}}current market phase{{/if}}: liquidity sweep, displacement creating FVG, retracement to FVG.{{/if}}
+  {{#if isLondonOpenSession}}- Given London Open, mention conceptual Judas Swing from Asian range, then reversal/expansion, potential FVG entry, especially as it relates to the {{#if selectedTimeframe}}'{{selectedTimeframe}}' timeframe's structures{{else}}session's typical price action{{/if}}.{{/if}}
 - State your CONFIDENCE (Low, Medium, High) in this ICT-specific conceptual analysis for the given context.
 
 **Part 2: Simplified Guidance (Conceptual & Educational - NOT FINANCIAL ADVICE)**
 Based on the overall analysis (including your ICT insights, but explained simply):
 - **suggestedActionDirection**: What general direction might be considered? (Buy, Sell, Consider Holding/Neutral, Avoid/Wait).
-- **potentialEntryZone**: If action is Buy/Sell, what is a conceptual price area for entry? (e.g., "around current price if X happens", "on a pullback to X level {{#if selectedTimeframe}}on the {{{selectedTimeframe}}} chart{{/if}}"). If Neutral/Avoid, this might be N/A.
-- **potentialTakeProfitZone**: If action is Buy/Sell, what is a conceptual target area? (e.g., "towards recent high Y", "near resistance Z {{#if selectedTimeframe}}on the {{{selectedTimeframe}}} chart{{/if}}"). If Neutral/Avoid, this might be N/A.
-- **potentialStopLossLevel**: If action is Buy/Sell, what is a conceptual level for a stop loss? (e.g., "below recent low A {{#if selectedTimeframe}}on the {{{selectedTimeframe}}} chart{{/if}}", "above resistance B"). If Neutral/Avoid, this might be N/A.
-- **conceptualTimeframe**: What's a general, conceptual timeframe for this idea? (e.g., "Intraday", "Short-term (few hours to a day)", "Swing (few days)"). {{#if selectedTimeframe}}This should align with or be slightly broader than the user's selected `{{{selectedTimeframe}}}`. For instance, a 15-minute selected timeframe might lead to an 'Intraday' or 'Short-term (few hours)' conceptual timeframe for an idea.{{else}}Base this on the overall market conditions described.{{/if}}
+- **potentialEntryZone**: If action is Buy/Sell, what is a conceptual price area for entry? (e.g., "around current price if X happens", "on a pullback to X level {{#if selectedTimeframe}}on the {{selectedTimeframe}} chart{{/if}}"). If Neutral/Avoid, this might be N/A.
+- **potentialTakeProfitZone**: If action is Buy/Sell, what is a conceptual target area? (e.g., "towards recent high Y", "near resistance Z {{#if selectedTimeframe}}on the {{selectedTimeframe}} chart{{/if}}"). If Neutral/Avoid, this might be N/A.
+- **potentialStopLossLevel**: If action is Buy/Sell, what is a conceptual level for a stop loss? (e.g., "below recent low A {{#if selectedTimeframe}}on the {{selectedTimeframe}} chart{{/if}}", "above resistance B"). If Neutral/Avoid, this might be N/A.
+- **conceptualTimeframe**: What's a general, conceptual timeframe for this idea? (e.g., "Intraday", "Short-term (few hours to a day)", "Swing (few days)"). {{#if selectedTimeframe}}This should align with or be slightly broader than the user's selected {{selectedTimeframe}}. For instance, a 15-minute selected timeframe might lead to an 'Intraday' or 'Short-term (few hours)' conceptual timeframe for an idea.{{else}}Base this on the overall market conditions described.{{/if}}
 - **reasoningForNonICTUser**: Explain the suggestion in simple terms, avoiding ICT jargon. Focus on basic concepts like trend, support/resistance, and momentum if applicable. For example, "The trend appears to be upward on the selected timeframe, and the price is near a support level, suggesting a potential bounce." or "The price is at a strong resistance level on the chosen chart after a long upward move, suggesting caution or potential for a pullback."
 
 **IMPORTANT**: Reiterate that all suggestions in Part 2 are conceptual, for educational understanding of market dynamics, and ARE NOT financial advice or direct trade signals. The user must do their own research and consider their risk tolerance.
@@ -126,3 +126,4 @@ const analyzeMarketDataFlow = ai.defineFlow(
     return output!;
   }
 );
+
