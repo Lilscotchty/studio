@@ -13,7 +13,7 @@ import { getAuth, type Auth } from 'firebase/auth';
 // NEXT_PUBLIC_FIREBASE_APP_ID=your_app_id
 
 // TEMPORARY DEBUG LOG:
-console.log("Attempting to load Firebase API Key:", process.env.NEXT_PUBLIC_FIREBASE_API_KEY);
+console.log("Attempting to load Firebase API Key from env:", process.env.NEXT_PUBLIC_FIREBASE_API_KEY);
 
 const firebaseConfig = {
   apiKey: process.env.NEXT_PUBLIC_FIREBASE_API_KEY || "YOUR_API_KEY",
@@ -25,10 +25,21 @@ const firebaseConfig = {
 };
 
 // Log the actual config being used by initializeApp
+// For security, we only log a portion of the API key if it's set, or "NOT SET" / "USING_PLACEHOLDER"
+let apiKeyStatus = "NOT SET";
+if (firebaseConfig.apiKey) {
+  if (firebaseConfig.apiKey === "YOUR_API_KEY") {
+    apiKeyStatus = "USING_PLACEHOLDER";
+  } else {
+    apiKeyStatus = firebaseConfig.apiKey.substring(0, 5) + "..." + firebaseConfig.apiKey.slice(-4);
+  }
+}
+
 console.log("Firebase config being used by SDK:", {
-  apiKey: firebaseConfig.apiKey ? firebaseConfig.apiKey.substring(0, 5) + "..." : "NOT SET", // Log only a portion for safety
+  apiKey: apiKeyStatus,
   authDomain: firebaseConfig.authDomain,
   projectId: firebaseConfig.projectId,
+  // Do not log other sensitive details like storageBucket directly if not needed for this debug
 });
 
 
