@@ -63,3 +63,6 @@ export interface AlphaVantageGlobalQuote { // Keeping name generic as it's a str
 // Ensure TradingSession is derived correctly from the (now correctly imported) AnalyzeMarketDataInput type
 export type TradingSession = AnalyzeMarketDataInput['activeTradingSession'];
 
+// Define available timeframes
+export const availableTimeframes = ["1min", "5min", "15min", "30min", "1hr", "2hr", "4hr", "Daily", "Weekly"] as const;
+export type Timeframe = typeof availableTimeframes[number];

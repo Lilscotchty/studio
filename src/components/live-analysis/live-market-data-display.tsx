@@ -12,16 +12,14 @@ import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription, CardFooter } from "@/components/ui/card";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage, FormDescription as ShadcnFormDescription } from "@/components/ui/form";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { AlertCircle, Loader2, Activity, Brain, Clock, Search, Info, Lightbulb, TrendingUp, TrendingDown, ShieldAlert, CircleDot, Target, StopCircle, CalendarClock } from "lucide-react";
+import { AlertCircle, Loader2, Activity, Brain, Clock, Search, Info, Lightbulb, TrendingUp, TrendingDown, ShieldAlert, CircleDot, Target, StopCircle, CalendarClock, Timer } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
-// Import the main function and the OUTPUT type from the flow. We don't import the schema object.
 import { analyzeMarketData, type AnalyzeMarketDataOutput } from "@/ai/flows/analyze-market-data-flow";
 import { fetchMarketDataFromAV, type FetchMarketDataResult } from "@/lib/actions"; 
 import { Alert, AlertDescription as ShadcnAlertDescription, AlertTitle as ShadcnAlertTitle } from "@/components/ui/alert";
-// Import AnalyzeMarketDataInput type from src/types for ensuring our local schema matches
-import type { TradingSession, AlphaVantageGlobalQuote, AnalyzeMarketDataInput } from "@/types"; 
+import type { TradingSession, AlphaVantageGlobalQuote, AnalyzeMarketDataInput, Timeframe } from "@/types"; 
+import { availableTimeframes } from "@/types"; // Import availableTimeframes
 
-// Define the Zod enum for trading sessions locally for form validation
 const LocalTradingSessionEnum = z.enum([
   "None/Overlap",
   "Asia",
@@ -31,7 +29,8 @@ const LocalTradingSessionEnum = z.enum([
   "New York PM"
 ]).optional();
 
-// Define the Zod schema for form validation locally in this client component
+const LocalTimeframeEnum = z.enum(availableTimeframes).optional();
+
 const marketDataFormSchema = z.object({
   symbolToFetch: z.string().optional(), 
   assetSymbol: z.string().min(1, "Asset symbol is required.").describe("The trading symbol, e.g., BTC/USD, AAPL"),
@@ -40,7 +39,8 @@ const marketDataFormSchema = z.object({
   recentLow: z.number({ required_error: "Recent low is required.", invalid_type_error: "Recent low must be a number."}),
   marketTrendDescription: z.string().min(1, "Market trend description is required."),
   keyLevelsDescription: z.string().optional(),
-  activeTradingSession: LocalTradingSessionEnum
+  activeTradingSession: LocalTradingSessionEnum,
+  selectedTimeframe: LocalTimeframeEnum.describe("The primary chart timeframe for analysis.")
 });
 
 const tradingSessionsDisplay: NonNullable<TradingSession>[] = [ 
@@ -73,6 +73,7 @@ export function LiveMarketDataDisplay() {
       marketTrendDescription: "Currently in a short-term uptrend, approaching recent highs after a small pullback.",
       keyLevelsDescription: "Potential resistance at recent highs. Bullish order block visible around prior lows.",
       activeTradingSession: "None/Overlap",
+      selectedTimeframe: "15min", // Default timeframe
     },
   });
 
@@ -123,9 +124,7 @@ export function LiveMarketDataDisplay() {
     setAnalysisError(null);
     setAnalysisResult(null);
     try {
-      // Exclude symbolToFetch before sending to the AI flow
       const { symbolToFetch, ...analysisInputData } = values;
-      // Ensure analysisInputData matches the AnalyzeMarketDataInput type expected by the flow
       const result = await analyzeMarketData(analysisInputData as AnalyzeMarketDataInput);
       setAnalysisResult(result);
       toast({
@@ -151,7 +150,7 @@ export function LiveMarketDataDisplay() {
         <CardHeader>
           <CardTitle className="font-headline text-xl flex items-center gap-2"><Activity className="text-accent" />Market Data & Observations</CardTitle>
           <CardDescription>
-            Observe the TradingView chart. Optionally, fetch a quote by entering a symbol (e.g., AAPL, EUR/USD, BTCUSD). Then, manually refine data and add your observations for AI-powered conceptual analysis using our data provider.
+            Observe the TradingView chart. Optionally, fetch a quote by entering a symbol (e.g., AAPL, EUR/USD, BTCUSD). Then, manually refine data, select your analysis timeframe, and add your observations for AI-powered conceptual analysis.
           </CardDescription>
         </CardHeader>
         <Form {...form}>
@@ -199,31 +198,56 @@ export function LiveMarketDataDisplay() {
                   </Alert>
                 )}
               </div>
+              
+              <div className="grid md:grid-cols-2 gap-6">
+                <FormField
+                  control={form.control}
+                  name="selectedTimeframe"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel className="flex items-center gap-1"><Timer className="h-4 w-4"/>Analysis Timeframe</FormLabel>
+                      <Select onValueChange={field.onChange} value={field.value || "15min"}>
+                        <FormControl>
+                          <SelectTrigger>
+                            <SelectValue placeholder="Select analysis timeframe" />
+                          </SelectTrigger>
+                        </FormControl>
+                        <SelectContent>
+                          {availableTimeframes.map(tf => (
+                            <SelectItem key={tf} value={tf}>{tf}</SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                      <ShadcnFormDescription>The primary chart timeframe for this analysis.</ShadcnFormDescription>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+                <FormField
+                  control={form.control}
+                  name="activeTradingSession"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel className="flex items-center gap-1"><Clock className="h-4 w-4"/>Perceived Trading Session</FormLabel>
+                      <Select onValueChange={field.onChange} value={field.value || "None/Overlap"}>
+                        <FormControl>
+                          <SelectTrigger>
+                            <SelectValue placeholder="Select current session (optional)" />
+                          </SelectTrigger>
+                        </FormControl>
+                        <SelectContent>
+                          {tradingSessionsDisplay.map(session => (
+                            <SelectItem key={session} value={session}>{session}</SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                      <ShadcnFormDescription>Helps contextualize session-specific patterns.</ShadcnFormDescription>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+              </div>
 
-
-               <FormField
-                control={form.control}
-                name="activeTradingSession"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel className="flex items-center gap-1"><Clock className="h-4 w-4"/>Perceived Trading Session</FormLabel>
-                    <Select onValueChange={field.onChange} value={field.value || "None/Overlap"}>
-                      <FormControl>
-                        <SelectTrigger>
-                          <SelectValue placeholder="Select current session (optional)" />
-                        </SelectTrigger>
-                      </FormControl>
-                      <SelectContent>
-                        {tradingSessionsDisplay.map(session => (
-                          <SelectItem key={session} value={session}>{session}</SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                    <ShadcnFormDescription>Helps contextualize session-specific patterns.</ShadcnFormDescription>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
               <FormField
                 control={form.control}
                 name="assetSymbol"
@@ -430,4 +454,3 @@ export function LiveMarketDataDisplay() {
     </div>
   );
 }
-
