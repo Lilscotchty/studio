@@ -1,34 +1,43 @@
 
+// Import the functions you need from the SDKs you need
 import { initializeApp, getApps, getApp, type FirebaseApp } from 'firebase/app';
 import { getAuth, type Auth } from 'firebase/auth';
 
-// Directly use the user-provided configuration
+// Ensure environment variables are loaded
+const apiKey = process.env.NEXT_PUBLIC_FIREBASE_API_KEY;
+const authDomain = process.env.NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN;
+const projectId = process.env.NEXT_PUBLIC_FIREBASE_PROJECT_ID;
+const storageBucket = process.env.NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET;
+const messagingSenderId = process.env.NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID;
+const appId = process.env.NEXT_PUBLIC_FIREBASE_APP_ID;
+
+// Log the source of each configuration value
+console.log("--- Firebase Configuration (from .env.local) ---");
+console.log(`apiKey: ${apiKey ? apiKey.substring(0,5) + '...' : 'NOT FOUND in .env.local'}`);
+console.log(`authDomain: ${authDomain || 'NOT FOUND in .env.local'}`);
+console.log(`projectId: ${projectId || 'NOT FOUND in .env.local'}`);
+console.log(`storageBucket: ${storageBucket || 'NOT FOUND in .env.local'}`);
+console.log(`messagingSenderId: ${messagingSenderId || 'NOT FOUND in .env.local'}`);
+console.log(`appId: ${appId ? appId.substring(0,20) + '...' : 'NOT FOUND in .env.local'}`);
+console.log("--------------------------------------------------");
+
+
 const firebaseConfig = {
-  apiKey: "AIzaSyDLfpHD6tKlxekkYLH6IFRkZxmp2pwhmyM",
-  authDomain: "marketvision-ai-26nvv.firebaseapp.com",
-  projectId: "marketvision-ai-26nvv",
-  storageBucket: "marketvision-ai-26nvv.firebasestorage.app", // User-provided value
-  messagingSenderId: "988146260477",
-  appId: "1:988146260477:web:df3078ad6c25421825e194"
+  apiKey: apiKey,
+  authDomain: authDomain,
+  projectId: projectId,
+  storageBucket: storageBucket,
+  messagingSenderId: messagingSenderId,
+  appId: appId,
 };
 
-// Log the configuration being used
-// Redact most of the API key for safety in logs if it's being displayed publicly
-let apiKeyDisplay = firebaseConfig.apiKey;
-if (apiKeyDisplay && apiKeyDisplay.length > 10) {
-    apiKeyDisplay = `${apiKeyDisplay.substring(0, 5)}...${apiKeyDisplay.slice(-4)}`;
+// Check if all required Firebase config values are present
+if (!apiKey || !authDomain || !projectId || !appId) {
+  console.error(
+    'CRITICAL ERROR: Firebase configuration is missing. Ensure all NEXT_PUBLIC_FIREBASE_ variables are set in your .env.local file and the server is restarted. Firebase will not initialize correctly.'
+  );
+  // Firebase will likely throw an error during initialization if config is incomplete.
 }
-
-console.log("--- Firebase Configuration (Hardcoded in src/lib/firebase/config.ts) ---");
-console.log(`apiKey: ${apiKeyDisplay}`);
-console.log(`authDomain: ${firebaseConfig.authDomain}`);
-console.log(`projectId: ${firebaseConfig.projectId}`);
-console.log(`storageBucket: ${firebaseConfig.storageBucket}`);
-console.log(`messagingSenderId: ${firebaseConfig.messagingSenderId}`);
-console.log(`appId: ${firebaseConfig.appId}`);
-console.log("-----------------------------------------------------------------------");
-console.warn("WARNING: Firebase credentials are currently hardcoded in src/lib/firebase/config.ts. This is not recommended for production. Use environment variables (.env.local) for better security.");
-
 
 let app: FirebaseApp;
 
