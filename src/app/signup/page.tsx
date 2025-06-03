@@ -65,8 +65,10 @@ export default function SignupPage() {
             errorMessage = 'The password is too weak.';
             break;
           default:
-            errorMessage = error.message || errorMessage;
+            errorMessage = `Sign up error: ${error.message || 'Unknown Firebase error'} (Code: ${error.code})`;
         }
+      } else if (error.message) {
+          errorMessage = error.message;
       }
       toast({
         title: 'Sign Up Failed',
@@ -148,4 +150,3 @@ export default function SignupPage() {
     </AuthFormWrapper>
   );
 }
-
