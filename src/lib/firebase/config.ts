@@ -12,6 +12,9 @@ import { getAuth, type Auth } from 'firebase/auth';
 // NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID=your_messaging_sender_id
 // NEXT_PUBLIC_FIREBASE_APP_ID=your_app_id
 
+// TEMPORARY DEBUG LOG:
+console.log("Attempting to load Firebase API Key:", process.env.NEXT_PUBLIC_FIREBASE_API_KEY);
+
 const firebaseConfig = {
   apiKey: process.env.NEXT_PUBLIC_FIREBASE_API_KEY || "YOUR_API_KEY",
   authDomain: process.env.NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN || "YOUR_AUTH_DOMAIN",
@@ -20,6 +23,14 @@ const firebaseConfig = {
   messagingSenderId: process.env.NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID || "YOUR_MESSAGING_SENDER_ID",
   appId: process.env.NEXT_PUBLIC_FIREBASE_APP_ID || "YOUR_APP_ID",
 };
+
+// Log the actual config being used by initializeApp
+console.log("Firebase config being used by SDK:", {
+  apiKey: firebaseConfig.apiKey ? firebaseConfig.apiKey.substring(0, 5) + "..." : "NOT SET", // Log only a portion for safety
+  authDomain: firebaseConfig.authDomain,
+  projectId: firebaseConfig.projectId,
+});
+
 
 let app: FirebaseApp;
 
