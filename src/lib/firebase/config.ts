@@ -2,46 +2,51 @@
 import { initializeApp, getApps, getApp, type FirebaseApp } from 'firebase/app';
 import { getAuth, type Auth } from 'firebase/auth';
 
-// IMPORTANT: Replace these with your actual Firebase project configuration
-// You should store these in environment variables (e.g., in .env.local)
-// Example .env.local file:
-// NEXT_PUBLIC_FIREBASE_API_KEY=your_api_key
-// NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN=your_auth_domain
-// NEXT_PUBLIC_FIREBASE_PROJECT_ID=your_project_id
-// NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET=your_storage_bucket
-// NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID=your_messaging_sender_id
-// NEXT_PUBLIC_FIREBASE_APP_ID=your_app_id
-
-// TEMPORARY DEBUG LOG:
-console.log("Attempting to load Firebase API Key from env:", process.env.NEXT_PUBLIC_FIREBASE_API_KEY);
-
-const firebaseConfig = {
-  apiKey: process.env.NEXT_PUBLIC_FIREBASE_API_KEY || "YOUR_API_KEY",
-  authDomain: process.env.NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN || "YOUR_AUTH_DOMAIN",
-  projectId: process.env.NEXT_PUBLIC_FIREBASE_PROJECT_ID || "YOUR_PROJECT_ID",
-  storageBucket: process.env.NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET || "YOUR_STORAGE_BUCKET",
-  messagingSenderId: process.env.NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID || "YOUR_MESSAGING_SENDER_ID",
-  appId: process.env.NEXT_PUBLIC_FIREBASE_APP_ID || "YOUR_APP_ID",
+// These are the default fallback values, inspired by your shared configuration.
+// Ideally, all these values should be loaded from environment variables.
+const defaultConfig = {
+  apiKey: "AIzaSyDLfpHD6tKlxekkYLH6IFRkZxmp2pwhmyM",
+  authDomain: "marketvision-ai-26nvv.firebaseapp.com",
+  projectId: "marketvision-ai-26nvv",
+  storageBucket: "marketvision-ai-26nvv.appspot.com", // Corrected typical storageBucket format
+  messagingSenderId: "988146260477",
+  appId: "1:988146260477:web:df3078ad6c25421825e194"
 };
 
-// Log the actual config being used by initializeApp
-// For security, we only log a portion of the API key if it's set, or "NOT SET" / "USING_PLACEHOLDER"
-let apiKeyStatus = "NOT SET";
-if (firebaseConfig.apiKey) {
-  if (firebaseConfig.apiKey === "YOUR_API_KEY") {
-    apiKeyStatus = "USING_PLACEHOLDER";
-  } else {
-    apiKeyStatus = firebaseConfig.apiKey.substring(0, 5) + "..." + firebaseConfig.apiKey.slice(-4);
+// Construct the final config, preferring environment variables if they exist.
+const firebaseConfig = {
+  apiKey: process.env.NEXT_PUBLIC_FIREBASE_API_KEY || defaultConfig.apiKey,
+  authDomain: process.env.NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN || defaultConfig.authDomain,
+  projectId: process.env.NEXT_PUBLIC_FIREBASE_PROJECT_ID || defaultConfig.projectId,
+  storageBucket: process.env.NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET || defaultConfig.storageBucket,
+  messagingSenderId: process.env.NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID || defaultConfig.messagingSenderId,
+  appId: process.env.NEXT_PUBLIC_FIREBASE_APP_ID || defaultConfig.appId,
+};
+
+// Enhanced logging to show the source of each config value.
+console.log("--- Firebase Configuration ---");
+const logSource = (envVarName: string, valueFromEnv: string | undefined, fallbackValue: string, usedValue: string) => {
+  if (valueFromEnv && valueFromEnv === usedValue) {
+    return `FROM ENV (${envVarName})`;
   }
+  if (usedValue === fallbackValue) {
+    return `USING FALLBACK (env var ${envVarName} not set or empty)`;
+  }
+  return 'UNKNOWN SOURCE (this should not happen)';
+};
+
+let apiKeyDisplay = firebaseConfig.apiKey;
+if (apiKeyDisplay && apiKeyDisplay.length > 10) { // Redact most of the API key for logging
+    apiKeyDisplay = `${apiKeyDisplay.substring(0, 5)}...${apiKeyDisplay.slice(-4)}`;
 }
 
-console.log("Firebase config being used by SDK:", {
-  apiKey: apiKeyStatus,
-  authDomain: firebaseConfig.authDomain,
-  projectId: firebaseConfig.projectId,
-  // Do not log other sensitive details like storageBucket directly if not needed for this debug
-});
-
+console.log(`apiKey: ${apiKeyDisplay} (${logSource('NEXT_PUBLIC_FIREBASE_API_KEY', process.env.NEXT_PUBLIC_FIREBASE_API_KEY, defaultConfig.apiKey, firebaseConfig.apiKey)})`);
+console.log(`authDomain: ${firebaseConfig.authDomain} (${logSource('NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN', process.env.NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN, defaultConfig.authDomain, firebaseConfig.authDomain)})`);
+console.log(`projectId: ${firebaseConfig.projectId} (${logSource('NEXT_PUBLIC_FIREBASE_PROJECT_ID', process.env.NEXT_PUBLIC_FIREBASE_PROJECT_ID, defaultConfig.projectId, firebaseConfig.projectId)})`);
+console.log(`storageBucket: ${firebaseConfig.storageBucket} (${logSource('NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET', process.env.NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET, defaultConfig.storageBucket, firebaseConfig.storageBucket)})`);
+console.log(`messagingSenderId: ${firebaseConfig.messagingSenderId} (${logSource('NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID', process.env.NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID, defaultConfig.messagingSenderId, firebaseConfig.messagingSenderId)})`);
+console.log(`appId: ${firebaseConfig.appId} (${logSource('NEXT_PUBLIC_FIREBASE_APP_ID', process.env.NEXT_PUBLIC_FIREBASE_APP_ID, defaultConfig.appId, firebaseConfig.appId)})`);
+console.log("-----------------------------");
 
 let app: FirebaseApp;
 
