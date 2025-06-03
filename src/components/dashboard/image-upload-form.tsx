@@ -2,9 +2,10 @@
 "use client";
 
 import React, { useState, useRef } from "react";
-import { useActionState } from "react"; // Changed from react-dom
-import { useFormStatus } from "react-dom"; // useFormStatus remains from react-dom
+import { useActionState } from "react";
+import { useFormStatus } from "react-dom";
 import Image from "next/image";
+import Link from "next/link";
 import { handleImageAnalysisAction, type AnalysisResult } from "@/lib/actions";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -13,12 +14,18 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription, CardFooter }
 import { AlertCircle, CheckCircle, Loader2, UploadCloud } from "lucide-react";
 import { PredictionResults } from "./prediction-results";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
+import { useAuth } from "@/contexts/auth-context";
+import { useToast } from "@/hooks/use-toast";
 
 
-function SubmitButton() {
+interface SubmitButtonProps {
+  isAuthDisabled: boolean;
+}
+
+function SubmitButton({ isAuthDisabled }: SubmitButtonProps) {
   const { pending } = useFormStatus();
   return (
-    <Button type="submit" disabled={pending} className="w-full sm:w-auto bg-primary hover:bg-primary/90">
+    <Button type="submit" disabled={pending || isAuthDisabled} className="w-full sm:w-auto bg-primary hover:bg-primary/90">
       {pending ? (
         <>
           <Loader2 className="mr-2 h-4 w-4 animate-spin" />
@@ -36,11 +43,40 @@ function SubmitButton() {
 
 export function ImageUploadForm() {
   const initialState: AnalysisResult | undefined = undefined;
-  const [state, formAction] = useActionState(handleImageAnalysisAction, initialState); // Changed useFormState to useActionState
+  const [state, formAction] = useActionState(handleImageAnalysisAction, initialState);
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const { user, loading: authLoading } = useAuth();
+  const { toast } = useToast();
+
+  const isInteractionDisabled = authLoading || !user;
 
   const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+    if (!user && !authLoading) {
+      toast({
+        title: "Authentication Required",
+        description: (
+          <p>
+            Please{' '}
+            <Link href="/login" className="font-semibold text-accent hover:underline">
+              log in
+            </Link>{' '}
+            or{' '}
+            <Link href="/signup" className="font-semibold text-accent hover:underline">
+              sign up
+            </Link>{' '}
+            to analyze charts.
+          </p>
+        ),
+        variant: "destructive",
+      });
+      if (fileInputRef.current) {
+        fileInputRef.current.value = ""; // Clear the file input
+      }
+      setPreviewUrl(null);
+      return;
+    }
+
     const file = event.target.files?.[0];
     if (file) {
       const reader = new FileReader();
@@ -58,9 +94,8 @@ export function ImageUploadForm() {
     if (fileInputRef.current) {
       fileInputRef.current.value = "";
     }
-    // To reset formState, we'd need to re-initialize the form or pass a reset action to useActionState if it supported it.
-    // For now, this just clears the visual preview and input. The `state` from useActionState will persist until next submission.
-    // A full reset of `state` would typically involve a new key on the form or component.
+    // Resetting 'state' from useActionState would typically involve a new key on the form or component.
+    // For now, this just clears the visual preview and input.
   };
 
   return (
@@ -69,7 +104,10 @@ export function ImageUploadForm() {
         <CardHeader>
           <CardTitle className="font-headline text-2xl">Upload Candlestick Chart</CardTitle>
           <CardDescription>
-            Upload an image of a candlestick chart to get market predictions and analysis.
+            {isInteractionDisabled && !authLoading ? 
+              "Please log in or sign up to analyze charts." : 
+              "Upload an image of a candlestick chart to get market predictions and analysis."
+            }
           </CardDescription>
         </CardHeader>
         <form action={formAction}>
@@ -84,7 +122,8 @@ export function ImageUploadForm() {
                 required
                 onChange={handleFileChange}
                 ref={fileInputRef}
-                className="file:text-foreground file:font-medium file:bg-muted file:border-0 file:px-4 file:py-2 file:rounded-md file:mr-4 hover:file:bg-accent"
+                disabled={isInteractionDisabled}
+                className="file:text-foreground file:font-medium file:bg-muted file:border-0 file:px-4 file:py-2 file:rounded-md file:mr-4 hover:file:bg-accent disabled:cursor-not-allowed disabled:opacity-70"
               />
             </div>
 
@@ -122,13 +161,13 @@ export function ImageUploadForm() {
               <Button type="button" variant="outline" onClick={handleReset} className="w-full sm:w-auto">
                 Reset
               </Button>
-              <SubmitButton />
+              <SubmitButton isAuthDisabled={isInteractionDisabled} />
             </div>
           </CardFooter>
         </form>
       </Card>
 
-      {state?.prediction && state?.analysis && (
+      {state?.prediction && state?.analysis && user && ( // Only show results if user is logged in
         <PredictionResults 
           prediction={state.prediction} 
           analysis={state.analysis} 
