@@ -5,10 +5,12 @@ import Image from "next/image";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
 import { Badge } from "@/components/ui/badge";
-import { TrendingUp, TrendingDown, Minus, CandlestickChart, BarChart2, Lightbulb, Zap, Workflow, Layers3, Info, ThumbsUp, ThumbsDown } from "lucide-react";
+import { TrendingUp, TrendingDown, Minus, CandlestickChart, BarChart2, Lightbulb, Zap, Workflow, Layers3, Info, ThumbsUp, ThumbsDown, Target, Activity, BookOpen, Compass } from "lucide-react";
 import type { PredictionOutput, AnalysisOutput } from "@/types";
 import { Button } from "@/components/ui/button";
 import { useToast } from "@/hooks/use-toast";
+import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
+
 
 interface PredictionResultsProps {
   prediction: PredictionOutput;
@@ -36,18 +38,11 @@ export function PredictionResults({ prediction, analysis, imagePreviewUrl }: Pre
     toast({
       title: "Feedback Received",
       description: `Thank you for your ${feedbackType === 'positive' ? 'positive' : 'negative'} feedback! While the system cannot learn from this in real-time for the very next analysis, this input is valuable for future improvements.`,
-      duration: 5000, // Show toast for 5 seconds
+      duration: 5000, 
     });
-    // In a more advanced system, you would store this feedback:
-    // For example:
-    // storeFeedbackOnServer({
-    //   inputDetails: { imagePreviewUrl, analysisParameters: { ... } }, // context of the analysis
-    //   predictionOutput: prediction,
-    //   analysisOutput: analysis,
-    //   userFeedback: feedbackType,
-    //   timestamp: new Date().toISOString()
-    // });
   };
+
+  const dailyBiasReasoning = analysis.dailyBiasReasoning;
 
   return (
     <div className="grid gap-6 lg:grid-cols-2">
@@ -117,15 +112,71 @@ export function PredictionResults({ prediction, analysis, imagePreviewUrl }: Pre
       <Card className="shadow-lg">
         <CardHeader>
           <CardTitle className="font-headline text-xl flex items-center gap-2">
-            <Lightbulb className="text-accent"/> Chart Analysis
+            <Lightbulb className="text-accent"/> Chart Analysis Details
           </CardTitle>
-          <CardDescription>Key findings from the candlestick chart image, including ICT insights.</CardDescription>
+          <CardDescription>Key findings from the candlestick chart image, including Daily Bias and ICT insights.</CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
           <div>
             <Label className="text-sm font-medium">Identified Trend</Label>
             <p className="text-lg font-semibold text-foreground">{analysis.trend}</p>
           </div>
+
+          {analysis.inferredDailyBias && (
+            <div>
+              <Label className="text-sm font-medium flex items-center gap-1"><Compass className="h-4 w-4 text-accent" /> Inferred Daily Bias (Visual)</Label>
+              <p className="text-lg font-semibold text-foreground">{analysis.inferredDailyBias}</p>
+            </div>
+          )}
+
+          {(dailyBiasReasoning?.drawOnLiquidityAnalysis || dailyBiasReasoning?.timeBasedLiquidityAnalysis || dailyBiasReasoning?.ltfConfirmationOutlook || dailyBiasReasoning?.openingPriceConfluence) && (
+            <div>
+              <Label className="text-sm font-medium mb-2 flex items-center gap-1"><BookOpen className="h-4 w-4 text-accent"/> Daily Bias Reasoning (Visual Interpretation)</Label>
+              <Accordion type="single" collapsible className="w-full">
+                {dailyBiasReasoning.drawOnLiquidityAnalysis && (
+                  <AccordionItem value="item-1">
+                    <AccordionTrigger className="text-xs hover:no-underline">
+                      <div className="flex items-center gap-1"><Target className="h-3 w-3" /> Draw on Liquidity</div>
+                    </AccordionTrigger>
+                    <AccordionContent className="text-xs p-2 border-l-2 border-accent ml-2 pl-3">
+                      {dailyBiasReasoning.drawOnLiquidityAnalysis}
+                    </AccordionContent>
+                  </AccordionItem>
+                )}
+                {dailyBiasReasoning.timeBasedLiquidityAnalysis && (
+                  <AccordionItem value="item-2">
+                    <AccordionTrigger className="text-xs hover:no-underline">
+                       <div className="flex items-center gap-1"><Activity className="h-3 w-3" /> Time-Based Liquidity</div>
+                    </AccordionTrigger>
+                    <AccordionContent className="text-xs p-2 border-l-2 border-accent ml-2 pl-3">
+                      {dailyBiasReasoning.timeBasedLiquidityAnalysis}
+                    </AccordionContent>
+                  </AccordionItem>
+                )}
+                {dailyBiasReasoning.ltfConfirmationOutlook && (
+                  <AccordionItem value="item-3">
+                    <AccordionTrigger className="text-xs hover:no-underline">
+                       <div className="flex items-center gap-1"><Layers3 className="h-3 w-3" /> LTF Confirmation Outlook</div>
+                    </AccordionTrigger>
+                    <AccordionContent className="text-xs p-2 border-l-2 border-accent ml-2 pl-3">
+                      {dailyBiasReasoning.ltfConfirmationOutlook}
+                    </AccordionContent>
+                  </AccordionItem>
+                )}
+                 {dailyBiasReasoning.openingPriceConfluence && (
+                  <AccordionItem value="item-4">
+                    <AccordionTrigger className="text-xs hover:no-underline">
+                       <div className="flex items-center gap-1"><Info className="h-3 w-3" /> Opening Price Confluence</div>
+                    </AccordionTrigger>
+                    <AccordionContent className="text-xs p-2 border-l-2 border-accent ml-2 pl-3">
+                      {dailyBiasReasoning.openingPriceConfluence}
+                    </AccordionContent>
+                  </AccordionItem>
+                )}
+              </Accordion>
+            </div>
+          )}
+
           <div>
             <Label className="text-sm font-medium">Detected Patterns</Label>
             {analysis.patterns && analysis.patterns.length > 0 ? (
@@ -143,9 +194,9 @@ export function PredictionResults({ prediction, analysis, imagePreviewUrl }: Pre
               <Label className="text-sm font-medium flex items-center gap-1"><Zap className="h-4 w-4 text-accent" /> ICT Elements Identified</Label>
               <ul className="mt-2 list-none space-y-2">
                 {analysis.ictElements.map((element, index) => (
-                  <li key={index} className="p-2 border rounded-md bg-muted/30">
+                  <li key={index} className="p-2 border rounded-md bg-muted/30 text-xs">
                     <strong className="text-accent">{element.type}:</strong>
-                    <p className="text-xs text-muted-foreground mt-0.5">{element.location_description}</p>
+                    <p className="text-muted-foreground mt-0.5">{element.location_description}</p>
                   </li>
                 ))}
               </ul>
@@ -164,19 +215,19 @@ export function PredictionResults({ prediction, analysis, imagePreviewUrl }: Pre
               <Label className="text-sm font-medium flex items-center gap-1">
                 <Layers3 className="h-4 w-4 text-accent" /> Potential AMD Cycle Observation
               </Label>
-              <div className="mt-1 p-3 border rounded-md bg-muted/30 space-y-1">
+              <div className="mt-1 p-3 border rounded-md bg-muted/30 space-y-1 text-xs">
                 {analysis.potentialAMDCycle.phase && (
-                    <p className="text-sm">
+                    <p>
                         <strong className="text-foreground">Phase:</strong> {analysis.potentialAMDCycle.phase}
                     </p>
                 )}
                 {analysis.potentialAMDCycle.reasoning && (
-                    <p className="text-xs text-muted-foreground">
+                    <p className="text-muted-foreground">
                         <Info className="inline h-3 w-3 mr-1" /> {analysis.potentialAMDCycle.reasoning}
                     </p>
                 )}
                 {(analysis.potentialAMDCycle.phase === "Unclear" && !analysis.potentialAMDCycle.reasoning) && (
-                    <p className="text-xs text-muted-foreground">No clear AMD cycle phase apparent from the visual information.</p>
+                    <p className="text-muted-foreground">No clear AMD cycle phase apparent from the visual information.</p>
                 )}
               </div>
             </div>
@@ -209,3 +260,4 @@ const Label = ({ className, children, ...props }: React.LabelHTMLAttributes<HTML
   </div>
 );
 
+    
