@@ -7,7 +7,7 @@ export default function SettingsPage() {
       <header className="text-center">
         <h1 className="text-4xl font-headline font-bold tracking-tight sm:text-5xl flex items-center justify-center">
           <Settings className="mr-3 h-10 w-10 text-accent"/>
-          Settings
+          Account <span className="text-accent">Settings</span>
         </h1>
         <p className="mt-3 text-lg text-muted-foreground max-w-xl mx-auto">
           Manage your account preferences, application settings, and more.
