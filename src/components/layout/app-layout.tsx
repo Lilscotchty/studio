@@ -2,7 +2,7 @@
 "use client";
 
 import React from "react";
-import Link from "next/link"; // Import Link
+import Link from "next/link";
 import {
   SidebarProvider,
   Sidebar,
@@ -11,20 +11,74 @@ import {
   SidebarFooter,
   SidebarInset,
   SidebarTrigger,
+  useSidebar, // Import useSidebar
 } from "@/components/ui/sidebar";
-import { SidebarNav } from "./sidebar-nav";
+import { SidebarNav, navItems } from "./sidebar-nav"; // Import navItems
 import { Button } from "@/components/ui/button";
-import { BotIcon, LogOut } from "lucide-react"; // Removed Settings2
+import { BotIcon, LogOut } from "lucide-react";
 import { BottomNavigation } from "./bottom-navigation"; 
 import { useIsMobile } from "@/hooks/use-mobile"; 
 import { useAuth } from "@/contexts/auth-context";
 import { useToast } from "@/hooks/use-toast";
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 
 
 export function AppLayout({ children }: { children: React.ReactNode }) {
   const isMobile = useIsMobile();
   const { user, loading, logout } = useAuth();
   const { toast } = useToast();
+  
+  // We need sidebar state for tooltip positioning in the desktop header
+  // This component itself is outside SidebarContext, so we'll wrap SidebarHeader with a consumer or pass state.
+  // For simplicity, we'll make a small component that uses the context.
+  
+  const DesktopHeaderIcons = () => {
+    const { state: sidebarState } = useSidebar(); // Consumes SidebarContext
+    const { user:authUser, loading:authLoading } = useAuth(); // Renamed to avoid conflict
+
+    const desktopHeaderNavItems = navItems.filter(item => {
+      if (item.href === "/notifications" || item.href === "/settings") {
+        if (authLoading) return false;
+        if (item.authRequired && !authUser) return false;
+        return true;
+      }
+      return false;
+    });
+
+    if (authLoading && desktopHeaderNavItems.length === 0) return null;
+
+    return (
+      <div className="hidden md:flex items-center gap-1">
+        {desktopHeaderNavItems.map((item) => (
+          <TooltipProvider key={item.href} delayDuration={0}>
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <Link href={item.href} passHref legacyBehavior>
+                  <Button
+                    as="a" // Render as an anchor tag
+                    variant="ghost"
+                    size="icon"
+                    aria-label={item.fullLabel || item.label}
+                    className="text-sidebar-foreground hover:bg-sidebar-accent hover:text-sidebar-accent-foreground"
+                  >
+                    <item.icon className="h-5 w-5" />
+                  </Button>
+                </Link>
+              </TooltipTrigger>
+              <TooltipContent 
+                side={sidebarState === 'expanded' ? 'bottom' : 'right'} 
+                align="center" 
+                className="bg-popover text-popover-foreground"
+              >
+                <p>{item.fullLabel || item.label}</p>
+              </TooltipContent>
+            </Tooltip>
+          </TooltipProvider>
+        ))}
+      </div>
+    );
+  };
+
 
   const handleLogout = async () => {
     try {
@@ -41,6 +95,15 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
       });
     }
   };
+  
+  const mobileHeaderNavItems = navItems.filter(item => {
+    if (!item.mobileLocation || item.mobileLocation !== 'header') return false;
+    if (loading) return false;
+    if (item.authRequired && !user) return false;
+    if (item.guestOnly && user) return false;
+    return true;
+  });
+
 
   return (
     <SidebarProvider defaultOpen>
@@ -53,7 +116,10 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
                 MarketVision <span className="text-primary">Pro</span>
               </h1>
             </div>
-            <SidebarTrigger className="group-data-[collapsible=icon]:hidden" />
+            <div className="flex items-center gap-1">
+              <DesktopHeaderIcons /> {/* Desktop icons rendered here */}
+              <SidebarTrigger className="group-data-[collapsible=icon]:hidden ml-1" />
+            </div>
           </SidebarHeader>
           <SidebarContent className="flex-1 p-0">
             <SidebarNav />
@@ -69,19 +135,27 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
                   <span className="group-data-[collapsible=icon]:hidden">Logout</span>
               </Button>
               )}
-              {/* Settings button removed from here as it's now in SidebarNav */}
           </SidebarFooter>
         </Sidebar>
       </div>
       
       <SidebarInset className="pb-16 md:pb-0"> 
         {isMobile && (
-          <header className="sticky top-0 z-40 flex h-14 items-center gap-4 border-b bg-background px-4 sm:static sm:h-auto sm:border-0 sm:bg-transparent sm:px-6 md:hidden">
+          <header className="sticky top-0 z-40 flex h-14 items-center justify-between gap-4 border-b bg-background px-4 sm:static sm:h-auto sm:border-0 sm:bg-transparent sm:px-6 md:hidden">
             <div className="flex items-center gap-2">
               <BotIcon className="h-7 w-7 text-accent" />
               <h1 className="text-lg font-headline font-semibold">
                 MarketVision <span className="text-primary">Pro</span>
               </h1>
+            </div>
+            <div className="flex items-center gap-1 ml-auto"> {/* Ensures icons are on the right */}
+              {mobileHeaderNavItems.map(item => (
+                 <Link href={item.href} key={item.href} passHref legacyBehavior>
+                   <Button as="a" variant="ghost" size="icon" aria-label={item.label}>
+                     <item.icon className="h-5 w-5" />
+                   </Button>
+                 </Link>
+              ))}
             </div>
           </header>
         )}
