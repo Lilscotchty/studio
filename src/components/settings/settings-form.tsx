@@ -21,10 +21,10 @@ import {
   AlertDialogTrigger,
 } from '@/components/ui/alert-dialog';
 import { useToast } from '@/hooks/use-toast';
-import { User, Moon, Sun, Bell, ShieldAlert, Trash2 } from 'lucide-react';
+import { User, Moon, Sun, Bell, ShieldAlert, Trash2, LogOut } from 'lucide-react'; // Added LogOut
 
 export function SettingsForm() {
-  const { user, loading: authLoading } = useAuth();
+  const { user, loading: authLoading, logout } = useAuth(); // Added logout
   const { theme, setTheme } = useTheme();
   const { toast } = useToast();
 
@@ -36,8 +36,24 @@ export function SettingsForm() {
     });
   };
 
+  const handleLogout = async () => {
+    try {
+      await logout();
+      toast({
+        title: 'Logged Out',
+        description: 'You have been successfully logged out.',
+      });
+      // Router will redirect via AuthContext
+    } catch (error) {
+      toast({
+        title: 'Logout Failed',
+        description: 'Could not log you out. Please try again.',
+        variant: 'destructive',
+      });
+    }
+  };
+
   const handleDeleteAccount = () => {
-    // This is a mock action. In a real app, this would trigger a Firebase function or API call.
     toast({
       title: 'Account Deletion Requested',
       description: 'This is a mock action. In a real application, this would initiate the account deletion process.',
@@ -69,7 +85,7 @@ export function SettingsForm() {
           <CardTitle className="font-headline text-xl flex items-center gap-2">
             <User className="text-primary" /> Profile Management
           </CardTitle>
-          <CardDescription>Manage your account details.</CardDescription>
+          <CardDescription>Manage your account details and session.</CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
           <div>
@@ -86,32 +102,13 @@ export function SettingsForm() {
             </Button>
           </div>
           <Separator />
-           <div>
-            <Label className="text-destructive">Danger Zone</Label>
-             <AlertDialog>
-              <AlertDialogTrigger asChild>
-                <Button variant="destructive" className="mt-2 w-full sm:w-auto">
-                  <Trash2 className="mr-2 h-4 w-4" /> Delete Account
-                </Button>
-              </AlertDialogTrigger>
-              <AlertDialogContent>
-                <AlertDialogHeader>
-                  <AlertDialogTitle>Are you absolutely sure?</AlertDialogTitle>
-                  <AlertDialogDescription>
-                    This action cannot be undone. This will permanently delete your
-                    account and remove your data from our servers.
-                  </AlertDialogDescription>
-                </AlertDialogHeader>
-                <AlertDialogFooter>
-                  <AlertDialogCancel>Cancel</AlertDialogCancel>
-                  <AlertDialogAction onClick={handleDeleteAccount} className="bg-destructive hover:bg-destructive/90">
-                    Yes, delete account
-                  </AlertDialogAction>
-                </AlertDialogFooter>
-              </AlertDialogContent>
-            </AlertDialog>
-            <p className="text-xs text-muted-foreground mt-1">
-              Permanently remove your account and all associated data.
+          <div>
+            <Label>Session</Label>
+            <Button variant="outline" onClick={handleLogout} className="mt-2 w-full sm:w-auto">
+              <LogOut className="mr-2 h-4 w-4" /> Log Out
+            </Button>
+             <p className="text-xs text-muted-foreground mt-1">
+              End your current session.
             </p>
           </div>
         </CardContent>
@@ -179,6 +176,47 @@ export function SettingsForm() {
             </div>
         </CardContent>
       </Card>
+
+      {/* Danger Zone Section */}
+      <Card className="shadow-lg border-destructive">
+        <CardHeader>
+          <CardTitle className="font-headline text-xl flex items-center gap-2 text-destructive">
+            <ShieldAlert className="text-destructive" /> Danger Zone
+          </CardTitle>
+          <CardDescription>Manage critical account actions.</CardDescription>
+        </CardHeader>
+        <CardContent>
+           <div>
+            <Label className="text-destructive font-semibold">Delete Account</Label>
+             <AlertDialog>
+              <AlertDialogTrigger asChild>
+                <Button variant="destructive" className="mt-2 w-full sm:w-auto">
+                  <Trash2 className="mr-2 h-4 w-4" /> Permanently Delete Account
+                </Button>
+              </AlertDialogTrigger>
+              <AlertDialogContent>
+                <AlertDialogHeader>
+                  <AlertDialogTitle>Are you absolutely sure?</AlertDialogTitle>
+                  <AlertDialogDescription>
+                    This action cannot be undone. This will permanently delete your
+                    account and remove your data from our servers.
+                  </AlertDialogDescription>
+                </AlertDialogHeader>
+                <AlertDialogFooter>
+                  <AlertDialogCancel>Cancel</AlertDialogCancel>
+                  <AlertDialogAction onClick={handleDeleteAccount} className="bg-destructive hover:bg-destructive/90">
+                    Yes, delete account
+                  </AlertDialogAction>
+                </AlertDialogFooter>
+              </AlertDialogContent>
+            </AlertDialog>
+            <p className="text-xs text-muted-foreground mt-1">
+              Permanently remove your account and all associated data. This action is irreversible.
+            </p>
+          </div>
+        </CardContent>
+      </Card>
+
     </div>
   );
 }
