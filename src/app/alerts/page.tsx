@@ -28,27 +28,27 @@ export default function AlertsPage() {
   };
 
   const handleToggleAlert = (alertId: string) => {
-    setAlerts((prevAlerts) =>
-      prevAlerts.map((alert) =>
-        alert.id === alertId ? { ...alert, isActive: !alert.isActive } : alert
-      )
-    );
     const alert = alerts.find(a => a.id === alertId);
     if (alert) {
+      setAlerts((prevAlerts) =>
+        prevAlerts.map((a) =>
+          a.id === alertId ? { ...a, isActive: !a.isActive } : a
+        )
+      );
       toast({
-        title: `Alert ${!alert.isActive ? "Activated" : "Deactivated"}`,
-        description: `Alert "${alert.name}" is now ${!alert.isActive ? "active" : "inactive"}.`,
+        title: `Alert "${alert.name}" ${!alert.isActive ? "Activated" : "Deactivated"}`,
+        description: `This alert will ${!alert.isActive ? "now send" : "no longer send"} notifications.`,
       });
     }
   };
 
   const handleDeleteAlert = (alertId: string) => {
     const alertToDelete = alerts.find(a => a.id === alertId);
-    setAlerts((prevAlerts) => prevAlerts.filter((alert) => alert.id !== alertId));
     if (alertToDelete) {
+      setAlerts((prevAlerts) => prevAlerts.filter((alert) => alert.id !== alertId));
       toast({
         title: "Alert Deleted",
-        description: `Alert "${alertToDelete.name}" has been removed.`,
+        description: `The alert "${alertToDelete.name}" has been successfully removed.`,
         variant: "destructive",
       });
     }

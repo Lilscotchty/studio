@@ -56,8 +56,8 @@ export function AlertConfigForm({ onAddAlert }: AlertConfigFormProps) {
       onAddAlert(newAlert);
       form.reset();
       toast({
-        title: "Alert Created",
-        description: `Alert "${newAlert.name}" has been successfully configured.`,
+        title: "Alert Created Successfully",
+        description: `Your new alert "${newAlert.name}" is now set up.`,
         variant: "default",
       });
       setIsSubmitting(false);
