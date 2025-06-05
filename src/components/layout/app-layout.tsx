@@ -2,6 +2,7 @@
 "use client";
 
 import React from "react";
+import Link from "next/link"; // Import Link
 import {
   SidebarProvider,
   Sidebar,
@@ -13,7 +14,7 @@ import {
 } from "@/components/ui/sidebar";
 import { SidebarNav } from "./sidebar-nav";
 import { Button } from "@/components/ui/button";
-import { BotIcon, PanelLeft, Settings2, LogOut } from "lucide-react";
+import { BotIcon, LogOut } from "lucide-react"; // Removed Settings2
 import { BottomNavigation } from "./bottom-navigation"; 
 import { useIsMobile } from "@/hooks/use-mobile"; 
 import { useAuth } from "@/contexts/auth-context";
@@ -68,10 +69,7 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
                   <span className="group-data-[collapsible=icon]:hidden">Logout</span>
               </Button>
               )}
-              <Button variant="ghost" className="w-full justify-start gap-2 group-data-[collapsible=icon]:justify-center">
-                  <Settings2 />
-                  <span className="group-data-[collapsible=icon]:hidden">Settings</span>
-              </Button>
+              {/* Settings button removed from here as it's now in SidebarNav */}
           </SidebarFooter>
         </Sidebar>
       </div>

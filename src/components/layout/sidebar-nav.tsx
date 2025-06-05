@@ -9,7 +9,7 @@ import {
   SidebarMenuButton,
 } from "@/components/ui/sidebar";
 import type { LucideIcon } from "lucide-react";
-import { BarChart3, BellRing, History, Activity, LogIn, UserPlus } from "lucide-react";
+import { BarChart3, BellRing, History, Activity, LogIn, UserPlus, Bell, Settings } from "lucide-react"; // Added Bell, Settings
 import { useAuth } from "@/contexts/auth-context";
 import { Skeleton } from "@/components/ui/skeleton";
 
@@ -24,9 +24,11 @@ export interface NavItem {
 
 export const navItems: NavItem[] = [
   { href: "/", label: "Overview", icon: BarChart3, fullLabel: "Market Overview" },
-  { href: "/alerts", label: "Alerts", icon: BellRing, fullLabel: "Alerts", authRequired: true },
-  { href: "/performance", label: "History", icon: History, fullLabel: "Performance", authRequired: true },
+  { href: "/alerts", label: "Alerts", icon: BellRing, fullLabel: "Alerts System", authRequired: true }, // Changed fullLabel for consistency
+  { href: "/performance", label: "History", icon: History, fullLabel: "Performance History", authRequired: true }, // Changed fullLabel
   { href: "/live-analysis", label: "Live", icon: Activity, fullLabel: "Live Analysis", authRequired: true },
+  { href: "/notifications", label: "Notify", icon: Bell, fullLabel: "Notifications", authRequired: true }, // New
+  { href: "/settings", label: "Settings", icon: Settings, fullLabel: "Settings", authRequired: true }, // New
   { href: "/login", label: "Login", icon: LogIn, fullLabel: "Login", guestOnly: true },
   { href: "/signup", label: "Sign Up", icon: UserPlus, fullLabel: "Sign Up", guestOnly: true },
 ];
@@ -45,7 +47,7 @@ export function SidebarNav() {
   if (loading) {
     return (
       <SidebarMenu>
-        {[...Array(4)].map((_, index) => (
+        {[...Array(6)].map((_, index) => ( // Adjusted for potentially more items
           <SidebarMenuItem key={index}>
             <div className="flex items-center gap-2 p-2 h-8 w-full">
               <Skeleton className="h-4 w-4 rounded-sm" />
