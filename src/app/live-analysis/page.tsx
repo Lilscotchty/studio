@@ -10,7 +10,7 @@ export default function LiveAnalysisPage() {
       <header className="text-center">
         <h1 className="text-4xl font-headline font-bold tracking-tight sm:text-5xl flex items-center justify-center">
           <BarChart className="mr-3 h-10 w-10 text-accent"/>
-          Live Chart & <span className="text-accent">ICT Analysis</span>
+          In-depth <span className="text-accent">Analysis</span>
         </h1>
         <p className="mt-3 text-lg text-muted-foreground max-w-2xl mx-auto">
           Observe the live market with the TradingView chart, then use the form below to input key data points and your observations for a conceptual AI-powered ICT analysis.
@@ -33,3 +33,4 @@ export default function LiveAnalysisPage() {
     </div>
   );
 }
+
