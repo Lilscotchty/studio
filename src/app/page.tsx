@@ -6,14 +6,6 @@ import { TradingViewMarketOverview } from "@/components/dashboard/tradingview-ma
 export default function DashboardPage() {
   return (
     <div className="container mx-auto py-2 md:py-8">
-      <header className="mb-8 md:mb-12 text-center">
-        <h1 className="text-3xl md:text-4xl font-headline font-bold tracking-tight sm:text-5xl">
-          Market <span className="text-accent">Overview</span>
-        </h1>
-        <p className="mt-3 text-base md:text-lg text-muted-foreground max-w-xl mx-auto">
-          Global market insights powered by TradingView and AI chart analysis.
-        </p>
-      </header>
       
       <main className="space-y-10 md:space-y-16">
         <section id="chart-analysis-tool">
@@ -45,3 +37,4 @@ export default function DashboardPage() {
     </div>
   );
 }
+
