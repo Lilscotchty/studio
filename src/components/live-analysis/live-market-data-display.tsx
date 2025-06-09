@@ -5,6 +5,7 @@ import React, { useState } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod"; 
+import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
@@ -12,13 +13,15 @@ import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription, CardFooter } from "@/components/ui/card";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage, FormDescription as ShadcnFormDescription } from "@/components/ui/form";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { AlertCircle, Loader2, Activity, Brain, Clock, Search, Info, Lightbulb, TrendingUp, TrendingDown, ShieldAlert, CircleDot, Target, StopCircle, CalendarClock, Timer } from "lucide-react";
+import { AlertCircle, Loader2, Activity, Brain, Clock, Search, Info, Lightbulb, TrendingUp, TrendingDown, ShieldAlert, CircleDot, Target, StopCircle, CalendarClock, Timer, CreditCard, Lock } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { analyzeMarketData, type AnalyzeMarketDataOutput } from "@/ai/flows/analyze-market-data-flow";
 import { fetchMarketDataFromAV, type FetchMarketDataResult } from "@/lib/actions"; 
 import { Alert, AlertDescription as ShadcnAlertDescription, AlertTitle as ShadcnAlertTitle } from "@/components/ui/alert";
 import type { TradingSession, AlphaVantageGlobalQuote, AnalyzeMarketDataInput, Timeframe } from "@/types"; 
-import { availableTimeframes } from "@/types"; // Import availableTimeframes
+import { availableTimeframes } from "@/types"; 
+import { useAuth } from "@/contexts/auth-context";
+import { SubscriptionModal } from "@/components/billing/subscription-modal"; // New import
 
 const LocalTradingSessionEnum = z.enum([
   "None/Overlap",
@@ -52,6 +55,8 @@ const tradingSessionsDisplay: NonNullable<TradingSession>[] = [
   "New York PM"
 ];
 
+const KORAPAY_TEST_PAYMENT_LINK = "https://test-checkout.korapay.com/pay/7RZ4eL2uRlHObOg";
+
 export function LiveMarketDataDisplay() {
   const { toast } = useToast();
   const [analysisResult, setAnalysisResult] = useState<AnalyzeMarketDataOutput | null>(null);
@@ -60,7 +65,12 @@ export function LiveMarketDataDisplay() {
 
   const [isFetchingData, setIsFetchingData] = useState(false);
   const [fetchDataError, setFetchDataError] = useState<string | null>(null);
+  
+  const { user, loading: authLoading, userData, activateSubscription } = useAuth();
+  const [isSubscriptionModalOpen, setIsSubscriptionModalOpen] = useState(false);
 
+  const isFullyAuthenticated = !authLoading && user;
+  const hasSubscription = userData?.hasActiveSubscription;
 
   const form = useForm<z.infer<typeof marketDataFormSchema>>({
     resolver: zodResolver(marketDataFormSchema),
@@ -73,11 +83,16 @@ export function LiveMarketDataDisplay() {
       marketTrendDescription: "Currently in a short-term uptrend, approaching recent highs after a small pullback.",
       keyLevelsDescription: "Potential resistance at recent highs. Bullish order block visible around prior lows.",
       activeTradingSession: "None/Overlap",
-      selectedTimeframe: "15min", // Default timeframe
+      selectedTimeframe: "15min", 
     },
   });
 
   const handleFetchData = async () => {
+    if (!isFullyAuthenticated || !hasSubscription) {
+        toast({ title: "Premium Feature", description: "Fetching live quotes requires an active subscription.", variant: "default" });
+        setIsSubscriptionModalOpen(true);
+        return;
+    }
     const symbol = form.getValues("symbolToFetch");
     if (!symbol) {
       setFetchDataError("Please enter a symbol to fetch.");
@@ -118,8 +133,12 @@ export function LiveMarketDataDisplay() {
     }
   };
 
-
   const onSubmitAnalysis = async (values: z.infer<typeof marketDataFormSchema>) => {
+    if (!isFullyAuthenticated || !hasSubscription) {
+        toast({ title: "Premium Feature", description: "Live market analysis requires an active subscription.", variant: "default" });
+        setIsSubscriptionModalOpen(true);
+        return;
+    }
     setIsAnalyzing(true);
     setAnalysisError(null);
     setAnalysisResult(null);
@@ -143,6 +162,73 @@ export function LiveMarketDataDisplay() {
       setIsAnalyzing(false);
     }
   };
+
+  if (authLoading) {
+    return (
+      <Card className="shadow-lg">
+        <CardHeader>
+          <CardTitle className="font-headline text-xl">Loading Analysis Tools...</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="h-40 animate-pulse bg-muted rounded-md flex items-center justify-center">
+            <Loader2 className="h-8 w-8 animate-spin text-primary" />
+          </div>
+        </CardContent>
+      </Card>
+    );
+  }
+
+  if (!user) {
+    return (
+      <Card className="shadow-lg text-center">
+        <CardHeader>
+          <CardTitle className="font-headline text-xl flex items-center justify-center gap-2"><Lock className="text-accent" />Access Denied</CardTitle>
+          <CardDescription>This is a premium feature.</CardDescription>
+        </CardHeader>
+        <CardContent>
+          <p className="mb-4">
+            Please{' '}
+            <Link href="/login" className="font-semibold text-accent hover:underline">
+              log in
+            </Link>{' '}
+            or{' '}
+            <Link href="/signup" className="font-semibold text-accent hover:underline">
+              sign up
+            </Link>{' '}
+            to access live market analysis.
+          </p>
+        </CardContent>
+      </Card>
+    );
+  }
+  
+  if (!hasSubscription) {
+    return (
+      <Card className="shadow-lg text-center">
+        <CardHeader>
+          <CardTitle className="font-headline text-xl flex items-center justify-center gap-2"><CreditCard className="text-accent" />Subscription Required</CardTitle>
+          <CardDescription>Live market analysis is a premium feature.</CardDescription>
+        </CardHeader>
+        <CardContent>
+          <p className="mb-4">
+            To access in-depth conceptual analysis based on your observations, an active subscription is required.
+          </p>
+          <Button onClick={() => setIsSubscriptionModalOpen(true)} className="bg-primary hover:bg-primary/80">
+            Subscribe to MarketVision Pro
+          </Button>
+        </CardContent>
+         <SubscriptionModal
+            isOpen={isSubscriptionModalOpen}
+            onClose={() => setIsSubscriptionModalOpen(false)}
+            onSimulateSuccess={() => {
+              activateSubscription();
+              toast({ title: "Subscription Activated (Simulated)", description: "You now have premium access!" });
+            }}
+            paymentLink={KORAPAY_TEST_PAYMENT_LINK}
+         />
+      </Card>
+    );
+  }
 
   return (
     <div className="space-y-8">
@@ -180,7 +266,7 @@ export function LiveMarketDataDisplay() {
                         </Button>
                       </div>
                       <ShadcnFormDescription>
-                         Enter Stock (e.g. AAPL), Forex (e.g. EUR/USD or EURUSD), or Crypto (e.g. BTC/USD or BTCUSD) symbol. Data from the quote service pre-fills fields below.
+                         Enter Stock (e.g. AAPL), Forex (e.g. EUR/USD or EURUSD), or Crypto (e.g. BTC/USD or BTCUSD) symbol. Data from the quote service pre-fills fields below. Fetching requires subscription.
                       </ShadcnFormDescription>
                       <FormMessage />
                     </FormItem>
@@ -435,6 +521,35 @@ export function LiveMarketDataDisplay() {
                 <Label className="text-sm font-medium text-muted-foreground">Potential Bias</Label>
                 <p className="text-lg font-semibold">{analysisResult.potentialBias} (Confidence: {analysisResult.confidence})</p>
               </div>
+               {analysisResult.dailyBiasReasoning && (
+                <div className="space-y-3">
+                  <Label className="text-sm font-medium text-muted-foreground">Daily Bias Reasoning (HTF Conceptual)</Label>
+                  {analysisResult.dailyBiasReasoning.drawOnLiquidityAnalysis && (
+                    <div>
+                      <h4 className="text-xs font-semibold text-foreground">Draw on Liquidity (IRL/ERL):</h4>
+                      <p className="text-xs text-muted-foreground whitespace-pre-wrap">{analysisResult.dailyBiasReasoning.drawOnLiquidityAnalysis}</p>
+                    </div>
+                  )}
+                  {analysisResult.dailyBiasReasoning.timeBasedLiquidityAnalysis && (
+                    <div>
+                      <h4 className="text-xs font-semibold text-foreground">Time-Based Liquidity (Prev D/W):</h4>
+                      <p className="text-xs text-muted-foreground whitespace-pre-wrap">{analysisResult.dailyBiasReasoning.timeBasedLiquidityAnalysis}</p>
+                    </div>
+                  )}
+                  {analysisResult.dailyBiasReasoning.ltfConfirmationOutlook && (
+                     <div>
+                      <h4 className="text-xs font-semibold text-foreground">LTF Confirmation Outlook ({{selectedTimeframe: form.getValues("selectedTimeframe") || "Selected TF"}}):</h4>
+                      <p className="text-xs text-muted-foreground whitespace-pre-wrap">{analysisResult.dailyBiasReasoning.ltfConfirmationOutlook}</p>
+                    </div>
+                  )}
+                  {analysisResult.dailyBiasReasoning.openingPriceConfluence && (
+                     <div>
+                      <h4 className="text-xs font-semibold text-foreground">Opening Price Confluence (Optional):</h4>
+                      <p className="text-xs text-muted-foreground whitespace-pre-wrap">{analysisResult.dailyBiasReasoning.openingPriceConfluence}</p>
+                    </div>
+                  )}
+                </div>
+              )}
               <div>
                 <Label className="text-sm font-medium text-muted-foreground">Key Observations (ICT)</Label>
                 <ul className="list-disc pl-5 space-y-1 mt-1">
@@ -451,6 +566,15 @@ export function LiveMarketDataDisplay() {
           </Card>
         </div>
       )}
+      <SubscriptionModal
+        isOpen={isSubscriptionModalOpen}
+        onClose={() => setIsSubscriptionModalOpen(false)}
+        onSimulateSuccess={() => {
+          activateSubscription();
+          toast({ title: "Subscription Activated (Simulated)", description: "You now have premium access!" });
+        }}
+        paymentLink={KORAPAY_TEST_PAYMENT_LINK}
+      />
     </div>
   );
 }
