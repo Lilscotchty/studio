@@ -11,13 +11,22 @@ import {
   DialogFooter,
 } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
-import { ExternalLink, CheckCircle } from 'lucide-react';
+import { ExternalLink, CheckCircle, Smartphone, Bitcoin, CircleDollarSign, Repeat, AlertTriangle } from 'lucide-react';
+import { useToast } from '@/hooks/use-toast'; // Import useToast
+
+interface PaymentOption {
+  name: string;
+  icon: React.ElementType;
+  actionType: 'link' | 'toast';
+  link?: string;
+  toastMessage?: string;
+}
 
 interface SubscriptionModalProps {
   isOpen: boolean;
   onClose: () => void;
   onSimulateSuccess: () => void;
-  paymentLink: string;
+  paymentLink: string; // Korapay link
 }
 
 export function SubscriptionModal({
@@ -26,33 +35,86 @@ export function SubscriptionModal({
   onSimulateSuccess,
   paymentLink,
 }: SubscriptionModalProps) {
+  const { toast } = useToast(); // Initialize toast
+
+  const paymentOptions: PaymentOption[] = [
+    {
+      name: 'Mobile Money (Korapay)',
+      icon: Smartphone,
+      actionType: 'link',
+      link: paymentLink,
+    },
+    {
+      name: 'Binance Pay',
+      icon: Repeat,
+      actionType: 'toast',
+      toastMessage: 'Binance Pay integration is coming soon!',
+    },
+    {
+      name: 'Bitcoin Deposit',
+      icon: Bitcoin,
+      actionType: 'toast',
+      toastMessage: 'Bitcoin deposit option is coming soon!',
+    },
+    {
+      name: 'USDT Deposit',
+      icon: CircleDollarSign,
+      actionType: 'toast',
+      toastMessage: 'USDT deposit option is coming soon!',
+    },
+  ];
+
+  const handlePaymentOptionClick = (option: PaymentOption) => {
+    if (option.actionType === 'link' && option.link) {
+      window.open(option.link, '_blank', 'noopener,noreferrer');
+      onClose(); // Close modal after opening link
+    } else if (option.actionType === 'toast' && option.toastMessage) {
+      toast({
+        title: 'Feature Not Available',
+        description: option.toastMessage,
+        variant: 'default',
+        duration: 3000,
+      });
+    }
+  };
+
   return (
     <Dialog open={isOpen} onOpenChange={(open) => !open && onClose()}>
-      <DialogContent className="sm:max-w-[425px]">
+      <DialogContent className="sm:max-w-md">
         <DialogHeader>
           <DialogTitle className="font-headline text-xl">Unlock Premium Features</DialogTitle>
           <DialogDescription>
-            Subscribe to MarketVision Pro to get unlimited access to Chart Analysis, Live Analysis, and all other premium features.
+            Choose your preferred payment method to subscribe to MarketVision Pro and get unlimited access.
           </DialogDescription>
         </DialogHeader>
-        <div className="py-4 space-y-4">
-          <p className="text-sm text-muted-foreground">
-            Click the button below to proceed to our secure payment page. After successful payment, your premium access will be activated.
+        <div className="py-4 space-y-3">
+          {paymentOptions.map((option) => (
+            <Button
+              key={option.name}
+              variant="outline"
+              className="w-full justify-start text-left h-auto py-3"
+              onClick={() => handlePaymentOptionClick(option)}
+            >
+              <option.icon className="mr-3 h-5 w-5 text-primary" />
+              <div className="flex flex-col">
+                <span className="font-medium">{option.name}</span>
+                {option.actionType === 'link' && (
+                  <span className="text-xs text-muted-foreground">Proceed to secure payment</span>
+                )}
+                 {option.actionType === 'toast' && (
+                  <span className="text-xs text-muted-foreground">Currently unavailable</span>
+                )}
+              </div>
+              {option.actionType === 'link' && <ExternalLink className="ml-auto h-4 w-4 text-muted-foreground" />}
+            </Button>
+          ))}
+        </div>
+        <div className="pt-4 border-t border-border">
+          <p className="text-xs text-center text-muted-foreground pb-2">
+            For testing purposes only:
           </p>
           <Button
-            asChild
-            className="w-full bg-primary hover:bg-primary/90"
-          >
-            <a href={paymentLink} target="_blank" rel="noopener noreferrer" onClick={onClose}>
-              <ExternalLink className="mr-2 h-4 w-4" />
-              Proceed to Payment
-            </a>
-          </Button>
-          <p className="text-xs text-center text-muted-foreground pt-2">
-            For testing purposes:
-          </p>
-          <Button
-            variant="outline"
+            variant="secondary"
             className="w-full"
             onClick={() => {
               onSimulateSuccess();
@@ -60,11 +122,11 @@ export function SubscriptionModal({
             }}
           >
             <CheckCircle className="mr-2 h-4 w-4 text-green-500" />
-            Simulate Successful Payment (Test Only)
+            Simulate Successful Payment
           </Button>
         </div>
-        <DialogFooter>
-          <Button variant="ghost" onClick={onClose}>
+        <DialogFooter className="mt-4">
+          <Button variant="ghost" onClick={onClose} className="w-full sm:w-auto">
             Close
           </Button>
         </DialogFooter>
