@@ -10,7 +10,7 @@ import type { UserAppData } from '@/types'; // Assuming UserAppData is defined i
 
 // List of developer emails with full access
 const DEVELOPER_EMAILS = ['pb7552212@gmail.com'];
-const INITIAL_TRIAL_POINTS = 5;
+const INITIAL_TRIAL_POINTS = 5; // Updated from previous value
 
 interface AuthContextType {
   user: FirebaseUser | null;
@@ -50,6 +50,12 @@ export function AuthProvider({ children }: { children: ReactNode }) {
              // Ensure trial points don't go below 0 from old stored data
             if (storedUserData.chartAnalysisTrialPoints < 0) {
                 storedUserData.chartAnalysisTrialPoints = 0;
+            }
+            // If existing user data doesn't have trial points or it's lower than new default for some reason, reset to default (e.g. after a policy change)
+            // This part is a bit tricky with localStorage simulation. In Firestore, you'd manage this during user creation or through migrations.
+            // For now, we'll mostly honor stored value unless it's missing or problematic.
+            if (typeof storedUserData.chartAnalysisTrialPoints === 'undefined') {
+                 storedUserData.chartAnalysisTrialPoints = INITIAL_TRIAL_POINTS;
             }
             setUserData(storedUserData);
           } catch (e) {
