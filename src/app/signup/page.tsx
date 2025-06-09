@@ -15,10 +15,11 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
 import { useToast } from '@/hooks/use-toast';
-import { Loader2, UserPlus } from 'lucide-react';
+import { Loader2, UserPlus, Phone } from 'lucide-react';
 
 const signupSchema = z.object({
   email: z.string().email({ message: 'Invalid email address.' }),
+  phoneNumber: z.string().min(10, { message: 'Phone number must be at least 10 digits.' }).optional().or(z.literal('')), // Optional phone number
   password: z.string().min(6, { message: 'Password must be at least 6 characters.' }),
   confirmPassword: z.string().min(6, { message: 'Password must be at least 6 characters.' }),
 }).refine(data => data.password === data.confirmPassword, {
@@ -37,6 +38,7 @@ export default function SignupPage() {
     resolver: zodResolver(signupSchema),
     defaultValues: {
       email: '',
+      phoneNumber: '',
       password: '',
       confirmPassword: '',
     },
@@ -45,11 +47,13 @@ export default function SignupPage() {
   const onSubmit = async (data: SignupFormValues) => {
     setIsLoading(true);
     try {
+      // The 'data' object now contains data.phoneNumber if provided
       await createUserWithEmailAndPassword(auth, data.email, data.password);
       toast({
         title: 'Account Created',
         description: 'Your account has been successfully created. You are now logged in.',
       });
+      // Here you could add logic to save data.phoneNumber to Firestore if needed
       router.push('/'); // Redirect to dashboard or desired page
     } catch (error: any) {
       let errorMessage = 'An unexpected error occurred. Please try again.';
@@ -95,6 +99,22 @@ export default function SignupPage() {
                 <FormLabel>Email Address</FormLabel>
                 <FormControl>
                   <Input type="email" placeholder="you@example.com" {...field} />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+          <FormField
+            control={form.control}
+            name="phoneNumber"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel className="flex items-center">
+                  <Phone className="mr-2 h-4 w-4 text-muted-foreground" />
+                  Phone Number (Optional)
+                </FormLabel>
+                <FormControl>
+                  <Input type="tel" placeholder="e.g., +1234567890" {...field} />
                 </FormControl>
                 <FormMessage />
               </FormItem>
