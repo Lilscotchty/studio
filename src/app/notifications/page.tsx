@@ -9,31 +9,52 @@ import { Badge } from "@/components/ui/badge";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Separator } from "@/components/ui/separator";
 import { formatDistanceToNow, parseISO } from 'date-fns';
-import { Bell, CheckCheck, Trash2, Info, AlertTriangle, ServerCog, BellRing, FileText } from "lucide-react";
+import { Bell, CheckCheck, Trash2, Info, AlertTriangle, ServerCog, BellRing, FileText, Sparkles } from "lucide-react";
 import type { AppNotification, NotificationType } from "@/types";
 import { cn } from "@/lib/utils";
 
-const NotificationIcon = ({ type, iconName }: { type: NotificationType, iconName?: string }) => {
-  if (iconName) {
-    const IconComponent = {
-        BellRing, Info, AlertTriangle, ServerCog, Sparkles: FileText, // Using FileText for Sparkles as an example
-        // Add other mappings from iconName to Lucide components here
-    }[iconName as keyof typeof import('lucide-react')]; // Type assertion
-    if (IconComponent) return <IconComponent className="h-5 w-5 mr-3 flex-shrink-0" />;
-  }
+const iconMap: Record<string, React.ElementType> = {
+  BellRing,
+  Info,
+  AlertTriangle,
+  ServerCog,
+  Sparkles,
+  FileText, // Example, using FileText if Sparkles was intended for text-related notifications
+  // Add other mappings here if needed
+};
 
-  switch (type) {
-    case 'alert_trigger':
-      return <BellRing className="h-5 w-5 mr-3 text-accent flex-shrink-0" />;
-    case 'site_message':
-      return <Info className="h-5 w-5 mr-3 text-blue-500 flex-shrink-0" />;
-    case 'system_update':
-      return <ServerCog className="h-5 w-5 mr-3 text-orange-500 flex-shrink-0" />;
-    case 'info':
-      return <Info className="h-5 w-5 mr-3 text-sky-500 flex-shrink-0" />;
-    default:
-      return <Bell className="h-5 w-5 mr-3 text-muted-foreground flex-shrink-0" />;
+const NotificationIcon = ({ type, iconName }: { type: NotificationType, iconName?: string }) => {
+  let SpecificIcon = Bell; // Default icon
+
+  if (iconName && iconMap[iconName]) {
+    SpecificIcon = iconMap[iconName];
+  } else {
+    switch (type) {
+      case 'alert_trigger':
+        SpecificIcon = BellRing;
+        break;
+      case 'site_message':
+        SpecificIcon = Info;
+        break;
+      case 'system_update':
+        SpecificIcon = ServerCog;
+        break;
+      case 'info': // General info
+        SpecificIcon = Info;
+        break;
+      default:
+        SpecificIcon = Bell; // Fallback generic notification icon
+    }
   }
+  
+  const iconColorClass = 
+    type === 'alert_trigger' ? 'text-accent' :
+    type === 'system_update' ? 'text-orange-500' :
+    type === 'site_message' ? 'text-blue-500' :
+    type === 'info' ? 'text-sky-500' : 
+    'text-muted-foreground';
+
+  return <SpecificIcon className={cn("h-5 w-5 mr-3 flex-shrink-0", iconColorClass)} />;
 };
 
 
@@ -82,37 +103,41 @@ export default function NotificationsPage() {
         </CardHeader>
         <CardContent>
           {notifications.length === 0 ? (
-            <div className="text-center py-12">
-              <Bell className="h-16 w-16 text-muted-foreground mx-auto mb-4" />
+            <div className="text-center py-16">
+              <BellOff className="h-20 w-20 text-muted-foreground/50 mx-auto mb-6" />
+              <p className="text-xl font-semibold text-muted-foreground mb-2">It's quiet in here...</p>
               <p className="text-muted-foreground">You have no notifications at the moment.</p>
             </div>
           ) : (
-            <ScrollArea className="h-[400px] pr-4">
-              <div className="space-y-4">
+            <ScrollArea className="h-[calc(100vh-20rem)] max-h-[500px] pr-4">
+              <div className="space-y-3">
                 {notifications.map((notification) => (
                   <div
                     key={notification.id}
+                    id={notification.id} // For potential deep linking/focus
                     className={cn(
-                      "p-4 rounded-lg border flex items-start space-x-3 transition-colors",
-                      notification.read ? "bg-card hover:bg-muted/50" : "bg-primary/5 hover:bg-primary/10 border-primary/30"
+                      "p-4 rounded-lg border flex items-start space-x-3 transition-colors duration-150",
+                      notification.read 
+                        ? "bg-card hover:bg-muted/40" 
+                        : "bg-primary/5 hover:bg-primary/10 border-primary/20 shadow-sm"
                     )}
                   >
                     <NotificationIcon type={notification.type} iconName={notification.iconName} />
                     <div className="flex-grow">
-                      <div className="flex justify-between items-start">
+                      <div className="flex justify-between items-start mb-0.5">
                         <h3 className={cn(
-                          "font-semibold text-sm",
+                          "font-semibold text-sm leading-tight",
                           !notification.read && "text-foreground"
                         )}>
                           {notification.title}
                         </h3>
-                        <span className="text-xs text-muted-foreground whitespace-nowrap">
+                        <span className="text-xs text-muted-foreground whitespace-nowrap ml-2">
                           {formatDistanceToNow(parseISO(notification.timestamp), { addSuffix: true })}
                         </span>
                       </div>
                       <p className={cn(
-                        "text-xs mt-1",
-                        notification.read ? "text-muted-foreground" : "text-foreground/80"
+                        "text-xs mt-0.5",
+                        notification.read ? "text-muted-foreground" : "text-foreground/90"
                       )}>
                         {notification.message}
                       </p>
@@ -121,18 +146,28 @@ export default function NotificationsPage() {
                             href={notification.relatedLink} 
                             target="_blank" 
                             rel="noopener noreferrer"
-                            className="text-xs text-accent hover:underline mt-1 inline-block"
+                            className="text-xs text-accent hover:text-accent/80 hover:underline mt-1.5 inline-block font-medium"
                         >
                             View Details
                         </a>
                        )}
-                       <div className="mt-3 flex gap-2">
+                       <div className="mt-2.5 flex gap-1.5">
                         {!notification.read && (
-                           <Button variant="ghost" size="xs" onClick={() => markAsRead(notification.id)} className="text-xs h-auto py-0.5 px-1.5">
+                           <Button 
+                             variant="ghost" 
+                             size="xs" // Custom size if needed, or use "sm" and adjust padding
+                             onClick={() => markAsRead(notification.id)} 
+                             className="text-xs h-auto py-0.5 px-1.5 text-muted-foreground hover:text-foreground hover:bg-muted/50"
+                           >
                             Mark as Read
                           </Button>
                         )}
-                         <Button variant="ghost" size="xs" onClick={() => deleteNotification(notification.id)} className="text-xs h-auto py-0.5 px-1.5 text-destructive hover:text-destructive hover:bg-destructive/10">
+                         <Button 
+                           variant="ghost" 
+                           size="xs" 
+                           onClick={() => deleteNotification(notification.id)} 
+                           className="text-xs h-auto py-0.5 px-1.5 text-destructive/70 hover:text-destructive hover:bg-destructive/10"
+                         >
                             Delete
                           </Button>
                        </div>
@@ -143,7 +178,49 @@ export default function NotificationsPage() {
             </ScrollArea>
           )}
         </CardContent>
+         {notifications.length > 0 && (
+            <CardFooter className="pt-4 border-t">
+                <p className="text-xs text-muted-foreground">
+                    Manage your notification preferences in <a href="/settings" className="underline hover:text-accent">Settings</a>.
+                </p>
+            </CardFooter>
+        )}
       </Card>
     </div>
   );
 }
+
+// Helper for custom small button size if not already in ui/button.tsx
+// If you add 'xs' to buttonVariants in ui/button.tsx, this isn't strictly needed.
+// For now, inline style is less intrusive than modifying shared component.
+// Note: If size="xs" is commonly needed, add it to buttonVariants for consistency.
+// Button.defaultProps = { ...Button.defaultProps, size: "xs" }; // This is not standard for functional components
+```
+
+In `src/components/ui/button.tsx`, if you don't have an `xs` size, you could add it to `buttonVariants`:
+```diff
+// ... inside buttonVariants
+    variants: {
+      variant: { /* ... */ },
+      size: {
+        default: "h-10 px-4 py-2",
+        sm: "h-9 rounded-md px-3",
+        lg: "h-11 rounded-md px-8",
+        icon: "h-10 w-10",
++       xs: "h-7 rounded-sm px-2 text-xs", // Example for an extra small size
+      },
+    },
+// ...
+```
+However, for this change, I've used classes like `h-auto py-0.5 px-1.5` to keep the modification local to `notifications/page.tsx`.
+
+**Key UI changes:**
+*   **Icon Mapping**: A more robust `iconMap` and default handling in `NotificationIcon`. Icon colors are also now tied to notification type.
+*   **Read/Unread Styling**: Unread notifications now have a subtle background color (`bg-primary/5`) and a slightly more prominent border (`border-primary/20`). Read items use the standard card background.
+*   **Action Buttons**: "Mark as Read" and "Delete" buttons are now styled as very subtle ghost buttons, appearing less prominent until interacted with.
+*   **Empty State**: Updated with a larger icon and slightly more engaging text.
+*   **Scroll Area Height**: Adjusted to be `calc(100vh-20rem)` with a `max-h-[500px]` to better fit various screen heights.
+*   **Spacing**: Minor adjustments to margins and padding for better visual flow within each notification item.
+*   **Card Footer**: Added a small footer with a link to settings.
+
+Please review these changes. The scroll area height might need fine-tuning based on your overall layout and desired look.
