@@ -9,7 +9,7 @@ import { Badge } from "@/components/ui/badge";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Separator } from "@/components/ui/separator";
 import { formatDistanceToNow, parseISO } from 'date-fns';
-import { Bell, CheckCheck, Trash2, Info, AlertTriangle, ServerCog, BellRing, FileText, Sparkles } from "lucide-react";
+import { Bell, CheckCheck, Trash2, Info, AlertTriangle, ServerCog, BellRing, FileText, Sparkles, BellOff } from "lucide-react";
 import type { AppNotification, NotificationType } from "@/types";
 import { cn } from "@/lib/utils";
 
@@ -155,7 +155,7 @@ export default function NotificationsPage() {
                         {!notification.read && (
                            <Button 
                              variant="ghost" 
-                             size="xs" // Custom size if needed, or use "sm" and adjust padding
+                             size="sm" // Using sm, can adjust padding if needed
                              onClick={() => markAsRead(notification.id)} 
                              className="text-xs h-auto py-0.5 px-1.5 text-muted-foreground hover:text-foreground hover:bg-muted/50"
                            >
@@ -164,7 +164,7 @@ export default function NotificationsPage() {
                         )}
                          <Button 
                            variant="ghost" 
-                           size="xs" 
+                           size="sm" // Using sm
                            onClick={() => deleteNotification(notification.id)} 
                            className="text-xs h-auto py-0.5 px-1.5 text-destructive/70 hover:text-destructive hover:bg-destructive/10"
                          >
@@ -189,38 +189,3 @@ export default function NotificationsPage() {
     </div>
   );
 }
-
-// Helper for custom small button size if not already in ui/button.tsx
-// If you add 'xs' to buttonVariants in ui/button.tsx, this isn't strictly needed.
-// For now, inline style is less intrusive than modifying shared component.
-// Note: If size="xs" is commonly needed, add it to buttonVariants for consistency.
-// Button.defaultProps = { ...Button.defaultProps, size: "xs" }; // This is not standard for functional components
-```
-
-In `src/components/ui/button.tsx`, if you don't have an `xs` size, you could add it to `buttonVariants`:
-```diff
-// ... inside buttonVariants
-    variants: {
-      variant: { /* ... */ },
-      size: {
-        default: "h-10 px-4 py-2",
-        sm: "h-9 rounded-md px-3",
-        lg: "h-11 rounded-md px-8",
-        icon: "h-10 w-10",
-+       xs: "h-7 rounded-sm px-2 text-xs", // Example for an extra small size
-      },
-    },
-// ...
-```
-However, for this change, I've used classes like `h-auto py-0.5 px-1.5` to keep the modification local to `notifications/page.tsx`.
-
-**Key UI changes:**
-*   **Icon Mapping**: A more robust `iconMap` and default handling in `NotificationIcon`. Icon colors are also now tied to notification type.
-*   **Read/Unread Styling**: Unread notifications now have a subtle background color (`bg-primary/5`) and a slightly more prominent border (`border-primary/20`). Read items use the standard card background.
-*   **Action Buttons**: "Mark as Read" and "Delete" buttons are now styled as very subtle ghost buttons, appearing less prominent until interacted with.
-*   **Empty State**: Updated with a larger icon and slightly more engaging text.
-*   **Scroll Area Height**: Adjusted to be `calc(100vh-20rem)` with a `max-h-[500px]` to better fit various screen heights.
-*   **Spacing**: Minor adjustments to margins and padding for better visual flow within each notification item.
-*   **Card Footer**: Added a small footer with a link to settings.
-
-Please review these changes. The scroll area height might need fine-tuning based on your overall layout and desired look.
