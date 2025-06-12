@@ -37,8 +37,8 @@ export function PredictionResults({ prediction, analysis, imagePreviewUrl }: Pre
   const handleFeedback = (feedbackType: 'positive' | 'negative') => {
     toast({
       title: "Feedback Received",
-      description: `Thank you for your ${feedbackType === 'positive' ? 'positive' : 'negative'} feedback! While the system cannot learn from this in real-time for the very next analysis, this input is valuable for future improvements.`,
-      duration: 5000, 
+      description: "Thank you for your feedback! We appreciate your input.",
+      duration: 3000, 
     });
   };
 
@@ -259,5 +259,7 @@ const Label = ({ className, children, ...props }: React.LabelHTMLAttributes<HTML
     {children}
   </div>
 );
+
+    
 
     
