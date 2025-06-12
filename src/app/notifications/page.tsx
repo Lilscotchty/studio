@@ -19,12 +19,11 @@ const iconMap: Record<string, React.ElementType> = {
   AlertTriangle,
   ServerCog,
   Sparkles,
-  FileText, // Example, using FileText if Sparkles was intended for text-related notifications
-  // Add other mappings here if needed
+  FileText, 
 };
 
 const NotificationIcon = ({ type, iconName }: { type: NotificationType, iconName?: string }) => {
-  let SpecificIcon = Bell; // Default icon
+  let SpecificIcon = Bell; 
 
   if (iconName && iconMap[iconName]) {
     SpecificIcon = iconMap[iconName];
@@ -39,11 +38,11 @@ const NotificationIcon = ({ type, iconName }: { type: NotificationType, iconName
       case 'system_update':
         SpecificIcon = ServerCog;
         break;
-      case 'info': // General info
+      case 'info': 
         SpecificIcon = Info;
         break;
       default:
-        SpecificIcon = Bell; // Fallback generic notification icon
+        SpecificIcon = Bell; 
     }
   }
   
@@ -81,7 +80,7 @@ export default function NotificationsPage() {
       </header>
       
       <Card className="shadow-lg">
-        <CardHeader className="flex flex-row items-center justify-between">
+        <CardHeader className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
           <div>
             <CardTitle className="font-headline text-xl">Your Notifications</CardTitle>
             <CardDescription>
@@ -91,11 +90,11 @@ export default function NotificationsPage() {
             </CardDescription>
           </div>
           {notifications.length > 0 && (
-            <div className="flex gap-2">
-              <Button variant="outline" size="sm" onClick={markAllAsRead} disabled={unreadCount === 0}>
+            <div className="flex flex-col sm:flex-row gap-2 items-stretch sm:items-center sm:ml-2 flex-shrink-0">
+              <Button variant="outline" size="sm" onClick={markAllAsRead} disabled={unreadCount === 0} className="w-full sm:w-auto">
                 <CheckCheck className="mr-2 h-4 w-4" /> Mark All Read
               </Button>
-              <Button variant="destructive" size="sm" onClick={clearAllNotifications}>
+              <Button variant="destructive" size="sm" onClick={clearAllNotifications} className="w-full sm:w-auto">
                 <Trash2 className="mr-2 h-4 w-4" /> Clear All
               </Button>
             </div>
@@ -114,7 +113,7 @@ export default function NotificationsPage() {
                 {notifications.map((notification) => (
                   <div
                     key={notification.id}
-                    id={notification.id} // For potential deep linking/focus
+                    id={notification.id} 
                     className={cn(
                       "p-4 rounded-lg border flex items-start space-x-3 transition-colors duration-150",
                       notification.read 
@@ -155,7 +154,7 @@ export default function NotificationsPage() {
                         {!notification.read && (
                            <Button 
                              variant="ghost" 
-                             size="sm" // Using sm, can adjust padding if needed
+                             size="sm" 
                              onClick={() => markAsRead(notification.id)} 
                              className="text-xs h-auto py-0.5 px-1.5 text-muted-foreground hover:text-foreground hover:bg-muted/50"
                            >
@@ -164,7 +163,7 @@ export default function NotificationsPage() {
                         )}
                          <Button 
                            variant="ghost" 
-                           size="sm" // Using sm
+                           size="sm" 
                            onClick={() => deleteNotification(notification.id)} 
                            className="text-xs h-auto py-0.5 px-1.5 text-destructive/70 hover:text-destructive hover:bg-destructive/10"
                          >
@@ -189,3 +188,4 @@ export default function NotificationsPage() {
     </div>
   );
 }
+
