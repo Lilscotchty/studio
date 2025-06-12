@@ -113,7 +113,7 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
             <div className="flex items-center gap-2">
               <BotIcon className="h-8 w-8 text-accent" />
               <h1 className="text-xl font-headline font-semibold group-data-[collapsible=icon]:hidden">
-                MarketVision <span className="text-primary">Pro</span>
+                FinSight <span className="text-primary">AI</span>
               </h1>
             </div>
             <div className="flex items-center gap-1">
@@ -145,7 +145,7 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
             <div className="flex items-center gap-2">
               <BotIcon className="h-7 w-7 text-accent" />
               <h1 className="text-lg font-headline font-semibold">
-                MarketVision <span className="text-primary">Pro</span>
+                FinSight <span className="text-primary">AI</span>
               </h1>
             </div>
             <div className="flex items-center gap-1 ml-auto"> {/* Ensures icons are on the right */}

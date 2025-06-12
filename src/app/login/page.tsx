@@ -75,7 +75,7 @@ export default function LoginPage() {
   return (
     <AuthFormWrapper
       title="Welcome Back!"
-      description="Log in to access your MarketVision Pro account."
+      description="Log in to access your FinSight AI account."
     >
       <Form {...form}>
         <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">

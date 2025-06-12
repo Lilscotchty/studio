@@ -7,8 +7,8 @@ import { AuthProvider } from '@/contexts/auth-context';
 import { ThemeProvider } from '@/contexts/theme-context'; // Import ThemeProvider
 
 export const metadata: Metadata = {
-  title: 'MarketVision Pro',
-  description: 'Advanced trading tools and insights by MarketVision Pro',
+  title: 'FinSight AI',
+  description: 'Advanced trading tools and insights by FinSight AI',
 };
 
 export default function RootLayout({

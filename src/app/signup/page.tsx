@@ -87,7 +87,7 @@ export default function SignupPage() {
   return (
     <AuthFormWrapper
       title="Create Account"
-      description="Join MarketVision Pro to unlock advanced trading tools."
+      description="Join FinSight AI to unlock advanced trading tools."
     >
       <Form {...form}>
         <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
