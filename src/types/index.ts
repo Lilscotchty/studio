@@ -66,3 +66,26 @@ export type TradingSession = AnalyzeMarketDataInput['activeTradingSession'];
 // Define available timeframes
 export const availableTimeframes = ["1min", "5min", "15min", "30min", "1hr", "2hr", "4hr", "Daily", "Weekly"] as const;
 export type Timeframe = typeof availableTimeframes[number];
+
+// --- New Notification Type ---
+export type NotificationType = 'alert_trigger' | 'site_message' | 'system_update' | 'info';
+
+export interface AppNotification {
+  id: string;
+  title: string;
+  message: string;
+  timestamp: string; // ISO string
+  read: boolean;
+  type: NotificationType;
+  relatedLink?: string; // e.g., link to the specific alert or asset
+  iconName?: string; // Optional: Lucide icon name for visual cue e.g. "BellRing", "Info"
+}
+
+// User-specific application data, managed by AuthContext
+export interface UserAppData {
+  userId: string;
+  email: string;
+  chartAnalysisTrialPoints: number;
+  hasActiveSubscription: boolean;
+  // Future: notificationPreferences, etc.
+}

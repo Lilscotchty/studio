@@ -11,14 +11,16 @@ import {
   SidebarFooter,
   SidebarInset,
   SidebarTrigger,
-  useSidebar, // Import useSidebar
+  useSidebar, 
 } from "@/components/ui/sidebar";
-import { SidebarNav, navItems } from "./sidebar-nav"; // Import navItems
+import { SidebarNav, navItems } from "./sidebar-nav"; 
 import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge"; // Import Badge
 import { BotIcon, LogOut } from "lucide-react";
 import { BottomNavigation } from "./bottom-navigation"; 
 import { useIsMobile } from "@/hooks/use-mobile"; 
 import { useAuth } from "@/contexts/auth-context";
+import { useNotificationCenter } from "@/contexts/notification-context"; // Import notification context
 import { useToast } from "@/hooks/use-toast";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 
@@ -27,14 +29,11 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
   const isMobile = useIsMobile();
   const { user, loading, logout } = useAuth();
   const { toast } = useToast();
-  
-  // We need sidebar state for tooltip positioning in the desktop header
-  // This component itself is outside SidebarContext, so we'll wrap SidebarHeader with a consumer or pass state.
-  // For simplicity, we'll make a small component that uses the context.
+  const { unreadCount } = useNotificationCenter(); // Get unread count for header icons
   
   const DesktopHeaderIcons = () => {
-    const { state: sidebarState } = useSidebar(); // Consumes SidebarContext
-    const { user:authUser, loading:authLoading } = useAuth(); // Renamed to avoid conflict
+    const { state: sidebarState } = useSidebar(); 
+    const { user:authUser, loading:authLoading } = useAuth(); 
 
     const desktopHeaderNavItems = navItems.filter(item => {
       if (item.href === "/notifications" || item.href === "/settings") {
@@ -55,13 +54,21 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
               <TooltipTrigger asChild>
                 <Link href={item.href} passHref legacyBehavior>
                   <Button
-                    as="a" // Render as an anchor tag
+                    as="a" 
                     variant="ghost"
                     size="icon"
                     aria-label={item.fullLabel || item.label}
-                    className="text-sidebar-foreground hover:bg-sidebar-accent hover:text-sidebar-accent-foreground"
+                    className="text-sidebar-foreground hover:bg-sidebar-accent hover:text-sidebar-accent-foreground relative" // Added relative for badge positioning
                   >
                     <item.icon className="h-5 w-5" />
+                    {item.showBadge && unreadCount > 0 && (
+                      <Badge 
+                        variant="destructive" 
+                        className="absolute top-1 right-1 h-4 w-4 p-0 min-w-0 flex items-center justify-center text-xs"
+                      >
+                        {unreadCount > 9 ? '9+' : unreadCount}
+                      </Badge>
+                    )}
                   </Button>
                 </Link>
               </TooltipTrigger>
@@ -117,7 +124,7 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
               </h1>
             </div>
             <div className="flex items-center gap-1">
-              <DesktopHeaderIcons /> {/* Desktop icons rendered here */}
+              <DesktopHeaderIcons /> 
               <SidebarTrigger className="group-data-[collapsible=icon]:hidden ml-1" />
             </div>
           </SidebarHeader>
@@ -148,11 +155,19 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
                 FinSight <span className="text-primary">AI</span>
               </h1>
             </div>
-            <div className="flex items-center gap-1 ml-auto"> {/* Ensures icons are on the right */}
+            <div className="flex items-center gap-1 ml-auto">
               {mobileHeaderNavItems.map(item => (
                  <Link href={item.href} key={item.href} passHref legacyBehavior>
-                   <Button as="a" variant="ghost" size="icon" aria-label={item.label}>
+                   <Button as="a" variant="ghost" size="icon" aria-label={item.label} className="relative"> {/* Added relative for badge */}
                      <item.icon className="h-5 w-5" />
+                      {item.showBadge && unreadCount > 0 && (
+                        <Badge 
+                          variant="destructive" 
+                          className="absolute top-1 right-1 h-4 w-4 p-0 min-w-0 flex items-center justify-center text-xs"
+                        >
+                           {unreadCount > 9 ? '9+' : unreadCount}
+                        </Badge>
+                      )}
                    </Button>
                  </Link>
               ))}

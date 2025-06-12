@@ -3,24 +3,26 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { navItems, type NavItem } from "./sidebar-nav"; // Import shared nav items and type
+import { navItems, type NavItem } from "./sidebar-nav"; 
 import { cn } from "@/lib/utils";
 import { useAuth } from "@/contexts/auth-context";
+import { useNotificationCenter } from "@/contexts/notification-context"; // Import notification context
 import { Skeleton } from "../ui/skeleton";
+import { Badge } from "@/components/ui/badge"; // Import Badge
 
 export function BottomNavigation() {
   const pathname = usePathname();
   const { user, loading } = useAuth();
+  const { unreadCount } = useNotificationCenter(); // Get unread count
 
-  // Filter navItems based on auth state for bottom navigation
-  // Prioritize core features for logged-in users if space is an issue.
-  // For now, apply same logic as sidebar.
   const displayedNavItems = navItems.filter(item => {
     if (loading) return false; 
     if (item.authRequired && !user) return false;
     if (item.guestOnly && user) return false;
+    // Exclude items designated for header placement on mobile from bottom nav
+    if (item.mobileLocation === 'header') return false;
     return true;
-  }).slice(0, 4); // Max 4 items for bottom nav simplicity
+  }).slice(0, 4); 
 
 
   if (loading) {
@@ -49,7 +51,7 @@ export function BottomNavigation() {
               key={item.href}
               href={item.href}
               className={cn(
-                "group inline-flex flex-col items-center justify-center px-3 pt-2 pb-1 text-center hover:bg-sidebar-accent hover:text-sidebar-accent-foreground",
+                "group relative inline-flex flex-col items-center justify-center px-3 pt-2 pb-1 text-center hover:bg-sidebar-accent hover:text-sidebar-accent-foreground", // Added relative
                 isActive
                   ? "text-primary"
                   : "text-muted-foreground"
@@ -62,6 +64,14 @@ export function BottomNavigation() {
                 )}
               />
               <span className="text-xs">{item.label}</span>
+              {item.showBadge && unreadCount > 0 && (
+                 <Badge 
+                    variant="destructive" 
+                    className="absolute top-1 right-2 h-4 w-4 p-0 min-w-0 flex items-center justify-center text-xs" // Adjusted position
+                  >
+                   {unreadCount > 9 ? '9+' : unreadCount}
+                  </Badge>
+              )}
             </Link>
           );
         })}

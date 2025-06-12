@@ -6,6 +6,7 @@ import { AlertConfigForm } from "@/components/alerts/alert-config-form";
 import { AlertListDisplay } from "@/components/alerts/alert-list-display";
 import type { AlertConfig } from "@/types";
 import { useToast } from "@/hooks/use-toast";
+import { useNotificationCenter } from "@/contexts/notification-context"; // Import notification context
 
 const IS_BROWSER = typeof window !== 'undefined';
 
@@ -16,6 +17,7 @@ export default function AlertsPage() {
     return savedAlerts ? JSON.parse(savedAlerts) : [];
   });
   const { toast } = useToast();
+  const { addNotification } = useNotificationCenter(); // Get addNotification function
 
   useEffect(() => {
     if (IS_BROWSER) {
@@ -54,6 +56,20 @@ export default function AlertsPage() {
     }
   };
 
+  const handleSimulateTrigger = (alert: AlertConfig) => {
+    addNotification({
+      title: `Alert Triggered: ${alert.name}`,
+      message: `Your alert "${alert.name}" for ${alert.asset} has met its condition: ${alert.conditionType.replace('_', ' ')} at ${alert.value}. (This is a simulated trigger)`,
+      type: 'alert_trigger',
+      iconName: 'BellRing',
+      relatedLink: `/alerts#${alert.id}` // Example link
+    });
+    toast({
+        title: "Alert Trigger Simulated",
+        description: `A notification for alert "${alert.name}" has been sent to your Notification Center.`,
+    });
+  };
+
   return (
     <div className="container mx-auto py-8 space-y-12">
       <header className="text-center">
@@ -74,6 +90,7 @@ export default function AlertsPage() {
           alerts={alerts}
           onToggleAlert={handleToggleAlert}
           onDeleteAlert={handleDeleteAlert}
+          onSimulateTrigger={handleSimulateTrigger} // Pass the new handler
         />
       </section>
     </div>

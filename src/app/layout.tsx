@@ -4,7 +4,8 @@ import './globals.css';
 import { AppLayout } from '@/components/layout/app-layout';
 import { Toaster } from "@/components/ui/toaster";
 import { AuthProvider } from '@/contexts/auth-context';
-import { ThemeProvider } from '@/contexts/theme-context'; // Import ThemeProvider
+import { ThemeProvider } from '@/contexts/theme-context';
+import { NotificationProvider } from '@/contexts/notification-context'; // Import NotificationProvider
 
 export const metadata: Metadata = {
   title: 'FinSight AI',
@@ -26,9 +27,11 @@ export default function RootLayout({
         <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;700&display=swap" rel="stylesheet" />
       </head>
       <body className="font-body antialiased">
-        <ThemeProvider> {/* Wrap AuthProvider and AppLayout with ThemeProvider */}
+        <ThemeProvider>
           <AuthProvider>
-            <AppLayout>{children}</AppLayout>
+            <NotificationProvider> {/* Wrap AppLayout with NotificationProvider */}
+              <AppLayout>{children}</AppLayout>
+            </NotificationProvider>
           </AuthProvider>
         </ThemeProvider>
         <Toaster />

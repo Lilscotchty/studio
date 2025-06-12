@@ -7,16 +7,16 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import type { AlertConfig } from "@/types";
-import { BellOff, Edit3, Trash2, BellRing } from "lucide-react";
+import { BellOff, Trash2, BellRing, Zap } from "lucide-react"; // Added Zap for trigger
 
 interface AlertListDisplayProps {
   alerts: AlertConfig[];
   onToggleAlert: (alertId: string) => void;
   onDeleteAlert: (alertId: string) => void;
-  // onEditAlert: (alert: AlertConfig) => void; // Future: for editing
+  onSimulateTrigger: (alert: AlertConfig) => void; // Updated to pass full alert
 }
 
-export function AlertListDisplay({ alerts, onToggleAlert, onDeleteAlert }: AlertListDisplayProps) {
+export function AlertListDisplay({ alerts, onToggleAlert, onDeleteAlert, onSimulateTrigger }: AlertListDisplayProps) {
   if (alerts.length === 0) {
     return (
       <Card className="shadow-lg">
@@ -38,7 +38,7 @@ export function AlertListDisplay({ alerts, onToggleAlert, onDeleteAlert }: Alert
     <Card className="shadow-lg">
       <CardHeader>
         <CardTitle className="font-headline text-xl">Configured Alerts</CardTitle>
-        <CardDescription>Manage your existing market alerts.</CardDescription>
+        <CardDescription>Manage your existing market alerts and simulate triggers.</CardDescription>
       </CardHeader>
       <CardContent>
         <Table>
@@ -66,13 +66,15 @@ export function AlertListDisplay({ alerts, onToggleAlert, onDeleteAlert }: Alert
                     {alert.isActive ? "Active" : "Inactive"}
                   </Badge>
                 </TableCell>
-                <TableCell className="text-right space-x-2">
+                <TableCell className="text-right space-x-1">
+                   {alert.isActive && (
+                    <Button variant="ghost" size="icon" onClick={() => onSimulateTrigger(alert)} title="Simulate Trigger">
+                      <Zap className="h-4 w-4 text-yellow-500" />
+                    </Button>
+                  )}
                   <Button variant="ghost" size="icon" onClick={() => onToggleAlert(alert.id)} title={alert.isActive ? "Deactivate" : "Activate"}>
                     {alert.isActive ? <BellOff className="h-4 w-4" /> : <BellRing className="h-4 w-4" />}
                   </Button>
-                  {/* <Button variant="ghost" size="icon" onClick={() => onEditAlert(alert)} title="Edit">
-                    <Edit3 className="h-4 w-4" />
-                  </Button> */}
                   <Button variant="ghost" size="icon" onClick={() => onDeleteAlert(alert.id)} title="Delete" className="text-destructive hover:text-destructive/80">
                     <Trash2 className="h-4 w-4" />
                   </Button>
