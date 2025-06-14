@@ -214,7 +214,7 @@ export function LiveMarketDataDisplay() {
             To access in-depth conceptual analysis based on your observations, an active subscription is required.
           </p>
           <Button onClick={() => setIsSubscriptionModalOpen(true)} className="bg-primary hover:bg-primary/80">
-            Subscribe to MarketVision Pro
+            Subscribe to FinSight AI Pro
           </Button>
         </CardContent>
          <SubscriptionModal
@@ -451,14 +451,14 @@ export function LiveMarketDataDisplay() {
           <Card className="shadow-lg border-accent">
             <CardHeader>
               <CardTitle className="font-headline text-xl flex items-center gap-2"><Lightbulb className="text-accent" /> Simplified Conceptual Guidance</CardTitle>
-              <CardDescription>This is AI-generated conceptual guidance for educational purposes. **NOT FINANCIAL ADVICE.**</CardDescription>
+              <CardDescription>AI-generated conceptual guidance and signals for educational purposes. **NOT FINANCIAL ADVICE.**</CardDescription>
             </CardHeader>
             <CardContent className="space-y-4">
               <div className="p-3 bg-destructive/10 border border-destructive/30 rounded-md">
                   <div className="flex items-start">
                     <ShieldAlert className="h-5 w-5 text-destructive mr-2 mt-0.5" />
                     <p className="text-sm text-destructive-foreground">
-                      <strong>Disclaimer:</strong> The information provided is for educational and conceptual purposes only and does not constitute financial advice. Trading involves substantial risk of loss. Always do your own research and consult with a qualified financial advisor before making any trading decisions.
+                      <strong>Important Notice:</strong> FinSight AI provides conceptual trading signals and market analysis for educational and informational purposes. While we aim to offer helpful insights, these signals are not financial advice and do not guarantee profits. Trading financial markets involves substantial risk of loss, and past performance is not indicative of future results. You should carefully consider your financial situation and risk tolerance before making any trading decisions. Always conduct your own research and, if necessary, consult with a qualified financial advisor. FinSight AI is not responsible for any trading losses incurred.
                     </p>
                   </div>
               </div>
