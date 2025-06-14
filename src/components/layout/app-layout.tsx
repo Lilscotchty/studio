@@ -35,6 +35,7 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
     const { state: sidebarState } = useSidebar(); 
     const { user:authUser, loading:authLoading } = useAuth(); 
 
+    // These items will still appear as icons in the header for quick access
     const desktopHeaderNavItems = navItems.filter(item => {
       if (item.href === "/notifications" || item.href === "/settings") {
         if (authLoading) return false;
@@ -128,7 +129,7 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
               <SidebarTrigger className="group-data-[collapsible=icon]:hidden ml-1" />
             </div>
           </SidebarHeader>
-          <SidebarContent className="flex-1 p-0">
+          <SidebarContent className="flex-1 pt-4"> {/* Added pt-4 for top padding */}
             <SidebarNav />
           </SidebarContent>
           <SidebarFooter className="p-2 space-y-1">

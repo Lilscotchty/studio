@@ -46,14 +46,15 @@ export function SidebarNav() {
     if (loading) return false; 
     if (item.authRequired && !user) return false;
     if (item.guestOnly && user) return false;
-    if (item.href === "/notifications" || item.href === "/settings") return false;
+    // Keep Notifications and Settings in the main sidebar list as well
+    // if (item.href === "/notifications" || item.href === "/settings") return false; // Previous filter removed
     return true;
   });
 
   if (loading && sidebarSpecificNavItems.length === 0) {
     return (
       <SidebarMenu>
-        {[...Array(4)].map((_, index) => ( 
+        {[...Array(navItems.filter(item => (!item.authRequired && !item.guestOnly) || (item.authRequired && user) || (item.guestOnly && !user)).length)].map((_, index) => ( 
           <SidebarMenuItem key={index}>
             <div className="flex items-center gap-2 p-2 h-8 w-full">
               <Skeleton className="h-4 w-4 rounded-sm" />
@@ -86,7 +87,7 @@ export function SidebarNav() {
                 </Badge>
               )}
                {item.showBadge && unreadCount > 0 && (
-                 <Badge variant="destructive" className="absolute top-0 right-0 h-2 w-2 p-0 transform translate-x-1 -translate-y-1 group-data-[collapsible=icon]:inline-flex hidden " />
+                 <Badge variant="destructive" className="absolute top-0 right-0 h-2 w-2 p-0 transform translate-x-1 -translate-y-1 group-data-[collapsible=icon]:inline-flex hidden items-center justify-center" />
                )}
             </SidebarMenuButton>
           </Link>
