@@ -129,7 +129,7 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
               <SidebarTrigger className="group-data-[collapsible=icon]:hidden ml-1" />
             </div>
           </SidebarHeader>
-          <SidebarContent className="flex-1 pt-4"> {/* Added pt-4 for top padding */}
+          <SidebarContent className="flex-1 pt-8"> {/* Increased top padding */}
             <SidebarNav />
           </SidebarContent>
           <SidebarFooter className="p-2 space-y-1">
