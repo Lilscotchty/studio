@@ -11,16 +11,6 @@ const storageBucket = process.env.NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET;
 const messagingSenderId = process.env.NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID;
 const appId = process.env.NEXT_PUBLIC_FIREBASE_APP_ID;
 
-// Log the source of each configuration value
-console.log("--- Firebase Configuration (from .env.local) ---");
-console.log(`apiKey: ${apiKey ? apiKey.substring(0,5) + '...' : 'NOT FOUND in .env.local'}`);
-console.log(`authDomain: ${authDomain || 'NOT FOUND in .env.local'}`);
-console.log(`projectId: ${projectId || 'NOT FOUND in .env.local'}`);
-console.log(`storageBucket: ${storageBucket || 'NOT FOUND in .env.local'}`);
-console.log(`messagingSenderId: ${messagingSenderId || 'NOT FOUND in .env.local'}`);
-console.log(`appId: ${appId ? appId.substring(0,20) + '...' : 'NOT FOUND in .env.local'}`);
-console.log("--------------------------------------------------");
-
 
 const firebaseConfig = {
   apiKey: apiKey,
